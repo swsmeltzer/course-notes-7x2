@@ -98,17 +98,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
 .task-check.pop{animation:pop 0.2s ease}
 
-/* ── NOTES PANEL (slide up from bottom) ───────────────────── */
-.panel-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.25s}
-.panel-overlay.open{opacity:1;pointer-events:all}
-.panel{position:fixed;bottom:0;left:0;right:0;z-index:301;background:var(--surface);border-radius:20px 20px 0 0;max-height:90vh;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1)}
-.panel.open{transform:translateY(0)}
-.panel-drag{width:36px;height:4px;border-radius:2px;background:var(--border);margin:12px auto 0}
-.panel-header{padding:12px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
-.panel-title{font-size:16px;font-weight:600;color:var(--text)}
-.panel-subtitle{font-size:12px;color:var(--muted);margin-top:2px}
-.panel-close{position:absolute;right:14px;top:14px;width:28px;height:28px;border-radius:50%;background:var(--bg);border:none;font-size:16px;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
-.panel-body{overflow-y:auto;flex:1;padding:0 16px 32px;-webkit-overflow-scrolling:touch}
+/* ── NOTES FULL SCREEN ───────────────────────────────────── */
+.notes-page{position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;flex-direction:column}
+.notes-page.open{display:flex}
+.notes-page-header{position:sticky;top:0;background:var(--surface);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.notes-back{font-size:15px;color:var(--green);font-weight:500;cursor:pointer;padding:4px 0;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+.notes-page-title{font-size:15px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notes-page-body{padding:16px 16px 60px;flex:1}
 
 /* Notebook content */
 .nb-section{margin-top:16px}
@@ -158,16 +154,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="weeks" id="weeks"></div>
 
-<!-- Notes Panel -->
-<div class="panel-overlay" id="overlay" onclick="closePanel()"></div>
-<div class="panel" id="panel">
-  <div class="panel-drag"></div>
-  <div class="panel-header">
-    <div class="panel-title" id="panel-title">Lecture Notes</div>
-    <div class="panel-subtitle" id="panel-subtitle"></div>
-    <button class="panel-close" onclick="closePanel()">✕</button>
+<!-- Notes Full Screen Page -->
+<div class="notes-page" id="notes-page">
+  <div class="notes-page-header">
+    <span class="notes-back" onclick="closePanel()">← Back</span>
+    <div class="notes-page-title" id="panel-title">Notes</div>
   </div>
-  <div class="panel-body" id="panel-body"></div>
+  <div class="notes-page-body" id="panel-body"></div>
 </div>
 
 <script>
@@ -668,44 +661,44 @@ const DATA=[
 
 // Audio links — Google Drive
 const AUDIO = {
-  1: 'https://drive.google.com/uc?export=open&id=1Z-Yl9pCsoLUV8_5W3lw40LxPBGNzjgAZ',
-  2: 'https://drive.google.com/uc?export=open&id=1kpfL6P81RnNHub38HQq-L4nDCC7Ic66H',
-  3: 'https://drive.google.com/uc?export=open&id=1MEdmTkyQmOl0Pbj8bjk0wdyO5qlerfXr',
-  4: 'https://drive.google.com/uc?export=open&id=11TurV2G4qC_25Wgrraiy0VoM71WVBzAV',
-  5: 'https://drive.google.com/uc?export=open&id=1Fh2ylKK0hGARCC2-m-1hxAvDdIniTRLL',
-  6: 'https://drive.google.com/uc?export=open&id=1iKKn6MheZAw_4rKxeXCNLGWOKvOk6UIY',
-  7: 'https://drive.google.com/uc?export=open&id=1XYl67LFVfPgpnCdQG1RUYRkJqF3VwMbG',
-  8: 'https://drive.google.com/uc?export=open&id=1Ala-f2Cn6Eohdrxtqgu4G42izu3QNUlQ',
-  9: 'https://drive.google.com/uc?export=open&id=1HkIuLElWGqFXMuiYD0afMGgBbae9uVoz',
-  10: 'https://drive.google.com/uc?export=open&id=1GXeZMYCXr-UCWdGInd5Z8Y1zEzTPyd8v',
-  11: 'https://drive.google.com/uc?export=open&id=1CQFLd98TLL08OEBezf5YIT-i8vOzPWGC',
-  12: 'https://drive.google.com/uc?export=open&id=1T35Nyv8VAODENcnRHWDwQ1NEH_t3EhvR',
-  13: 'https://drive.google.com/uc?export=open&id=177LHW0-noTMSOsp0F9CWDKOBzkm4ta3q',
-  14: 'https://drive.google.com/uc?export=open&id=1KcU19yCL72trBavsPnZMfT2PsbxhMUb4',
-  15: 'https://drive.google.com/uc?export=open&id=1GznqNoRlK2MdAinqcj9NL8Tp0830MfZ4',
-  16: 'https://drive.google.com/uc?export=open&id=1vingMq9VM5lmm9GLxo3XkWAMp_Ws-fmF',
-  17: 'https://drive.google.com/uc?export=open&id=1luyyy6ZSzErutMTm9QZm2UA02M2O0bsf',
-  18: 'https://drive.google.com/uc?export=open&id=1q1L96DHk0yWFjuIx2ymBJE5wA3PT6NP9',
-  19: 'https://drive.google.com/uc?export=open&id=1Gud01YsCrNEMjyUiWtp2tnm7C-7SGW6H',
-  20: 'https://drive.google.com/uc?export=open&id=1A1YhbmeG09Piq5JG9ZC9xF74P2OaF7wA',
-  21: 'https://drive.google.com/uc?export=open&id=1Iy8_w3o0EeyBbrinhh8hC86kLpOjLJlb',
-  22: 'https://drive.google.com/uc?export=open&id=1rvG9sViaCYnPpqQHnnQpK6758P11IvZ5',
-  23: 'https://drive.google.com/uc?export=open&id=14Bv8Q8cZ7Iop-yFK3cy3TZ48i7fNpqUC',
-  24: 'https://drive.google.com/uc?export=open&id=1SwZhG9wVZeG4OyTPY5wcrQCYeuY6B93K',
-  25: 'https://drive.google.com/uc?export=open&id=1JFuW0U6KtcG0Woc-KYzLCLgn406QG7fl',
-  26: 'https://drive.google.com/uc?export=open&id=1e3-ErdM91SpYY346H3M1ga9IIYvi9fB1',
-  27: 'https://drive.google.com/uc?export=open&id=1wYs1fi9e_SrF0xxFY94OmjQBD2OPA2FZ',
-  28: 'https://drive.google.com/uc?export=open&id=1EdPMVB-GY58FbLyLJ3QevSNN7Hk_3s7Z',
-  29: 'https://drive.google.com/uc?export=open&id=1OSCU92Xzc4niOdzYZ0g69lForZWyNE8X',
-  30: 'https://drive.google.com/uc?export=open&id=15R9W5lMu9ZgqdC--HcsuSghInK-tEQ05',
-  31: 'https://drive.google.com/uc?export=open&id=1zYsWBarRNx9cNbUqC4IpZV9BauLsdKsi',
-  32: 'https://drive.google.com/uc?export=open&id=19sXGqlBLGflLCo-KdfDOCZUVmO0qWQpe',
-  33: 'https://drive.google.com/uc?export=open&id=1yTQaAOY8sZNPr0haZBP0VMASwm6vQURE',
-  34: 'https://drive.google.com/uc?export=open&id=1mdG-PYRlPImWlmZ5D8ijcudqW17l9fpa',
+  1: 'https://drive.google.com/file/d/1Z-Yl9pCsoLUV8_5W3lw40LxPBGNzjgAZ/preview',
+  2: 'https://drive.google.com/file/d/1kpfL6P81RnNHub38HQq-L4nDCC7Ic66H/preview',
+  3: 'https://drive.google.com/file/d/1MEdmTkyQmOl0Pbj8bjk0wdyO5qlerfXr/preview',
+  4: 'https://drive.google.com/file/d/11TurV2G4qC_25Wgrraiy0VoM71WVBzAV/preview',
+  5: 'https://drive.google.com/file/d/1Fh2ylKK0hGARCC2-m-1hxAvDdIniTRLL/preview',
+  6: 'https://drive.google.com/file/d/1iKKn6MheZAw_4rKxeXCNLGWOKvOk6UIY/preview',
+  7: 'https://drive.google.com/file/d/1XYl67LFVfPgpnCdQG1RUYRkJqF3VwMbG/preview',
+  8: 'https://drive.google.com/file/d/1Ala-f2Cn6Eohdrxtqgu4G42izu3QNUlQ/preview',
+  9: 'https://drive.google.com/file/d/1HkIuLElWGqFXMuiYD0afMGgBbae9uVoz/preview',
+  10: 'https://drive.google.com/file/d/1GXeZMYCXr-UCWdGInd5Z8Y1zEzTPyd8v/preview',
+  11: 'https://drive.google.com/file/d/1CQFLd98TLL08OEBezf5YIT-i8vOzPWGC/preview',
+  12: 'https://drive.google.com/file/d/1T35Nyv8VAODENcnRHWDwQ1NEH_t3EhvR/preview',
+  13: 'https://drive.google.com/file/d/177LHW0-noTMSOsp0F9CWDKOBzkm4ta3q/preview',
+  14: 'https://drive.google.com/file/d/1KcU19yCL72trBavsPnZMfT2PsbxhMUb4/preview',
+  15: 'https://drive.google.com/file/d/1GznqNoRlK2MdAinqcj9NL8Tp0830MfZ4/preview',
+  16: 'https://drive.google.com/file/d/1vingMq9VM5lmm9GLxo3XkWAMp_Ws-fmF/preview',
+  17: 'https://drive.google.com/file/d/1luyyy6ZSzErutMTm9QZm2UA02M2O0bsf/preview',
+  18: 'https://drive.google.com/file/d/1q1L96DHk0yWFjuIx2ymBJE5wA3PT6NP9/preview',
+  19: 'https://drive.google.com/file/d/1Gud01YsCrNEMjyUiWtp2tnm7C-7SGW6H/preview',
+  20: 'https://drive.google.com/file/d/1A1YhbmeG09Piq5JG9ZC9xF74P2OaF7wA/preview',
+  21: 'https://drive.google.com/file/d/1Iy8_w3o0EeyBbrinhh8hC86kLpOjLJlb/preview',
+  22: 'https://drive.google.com/file/d/1rvG9sViaCYnPpqQHnnQpK6758P11IvZ5/preview',
+  23: 'https://drive.google.com/file/d/14Bv8Q8cZ7Iop-yFK3cy3TZ48i7fNpqUC/preview',
+  24: 'https://drive.google.com/file/d/1SwZhG9wVZeG4OyTPY5wcrQCYeuY6B93K/preview',
+  25: 'https://drive.google.com/file/d/1JFuW0U6KtcG0Woc-KYzLCLgn406QG7fl/preview',
+  26: 'https://drive.google.com/file/d/1e3-ErdM91SpYY346H3M1ga9IIYvi9fB1/preview',
+  27: 'https://drive.google.com/file/d/1wYs1fi9e_SrF0xxFY94OmjQBD2OPA2FZ/preview',
+  28: 'https://drive.google.com/file/d/1EdPMVB-GY58FbLyLJ3QevSNN7Hk_3s7Z/preview',
+  29: 'https://drive.google.com/file/d/1OSCU92Xzc4niOdzYZ0g69lForZWyNE8X/preview',
+  30: 'https://drive.google.com/file/d/15R9W5lMu9ZgqdC--HcsuSghInK-tEQ05/preview',
+  31: 'https://drive.google.com/file/d/1zYsWBarRNx9cNbUqC4IpZV9BauLsdKsi/preview',
+  32: 'https://drive.google.com/file/d/19sXGqlBLGflLCo-KdfDOCZUVmO0qWQpe/preview',
+  33: 'https://drive.google.com/file/d/1yTQaAOY8sZNPr0haZBP0VMASwm6vQURE/preview',
+  34: 'https://drive.google.com/file/d/1mdG-PYRlPImWlmZ5D8ijcudqW17l9fpa/preview',
   // Role Plays (files 35-37)
-  35: 'https://drive.google.com/uc?export=open&id=1h8bgAMix1JJjCSDmUo0PRj5gI2WLZgHS',
-  36: 'https://drive.google.com/uc?export=open&id=1TG2JZMUyYitENIXIneIORLVJ5HQSYJ2T',
-  37: 'https://drive.google.com/uc?export=open&id=18dOjRX1zcpJIsRqmli5x1MBOO6Czy_jq',
+  35: 'https://drive.google.com/file/d/1h8bgAMix1JJjCSDmUo0PRj5gI2WLZgHS/preview',
+  36: 'https://drive.google.com/file/d/1TG2JZMUyYitENIXIneIORLVJ5HQSYJ2T/preview',
+  37: 'https://drive.google.com/file/d/18dOjRX1zcpJIsRqmli5x1MBOO6Czy_jq/preview',
 };
 
 // ── State ──────────────────────────────────────────────────
@@ -810,11 +803,9 @@ function openNotes(lecNum, taskName){
   panelLecNum = lecNum;
   const nb = NOTEBOOK[lecNum];
   document.getElementById('panel-title').textContent = nb ? nb.title : taskName;
-  document.getElementById('panel-subtitle').textContent = nb ? 'Course notebook outline + your notes' : 'Your notes';
 
   let html = '';
 
-  // Notebook outline
   if(nb && nb.sections.length){
     nb.sections.forEach(s=>{
       html += `<div class="nb-section">`;
@@ -831,7 +822,6 @@ function openNotes(lecNum, taskName){
     });
   }
 
-  // Personal notes textarea
   const noteKey = 'lec-'+lecNum;
   const savedNote = notesData[noteKey] || '';
   html += `<div class="notes-section">
@@ -843,13 +833,12 @@ function openNotes(lecNum, taskName){
   </div>`;
 
   document.getElementById('panel-body').innerHTML = html;
-  document.getElementById('panel-overlay').classList.add('open');
-  document.getElementById('panel').classList.add('open');
+  document.getElementById('notes-page').classList.add('open');
+  window.scrollTo(0,0);
 }
 
 function closePanel(){
-  document.getElementById('panel-overlay').classList.remove('open');
-  document.getElementById('panel').classList.remove('open');
+  document.getElementById('notes-page').classList.remove('open');
   panelLecNum = null;
 }
 
@@ -894,10 +883,10 @@ function render(){
         // Action buttons
         let actions = '';
         if(task.lec){
-          actions += `<div class="notes-link" onclick="openNotes(${task.lec},'${task.n.replace(/'/g,"\\'")}')">📓 Tap to open outline &amp; notes →</div>`;
+          actions += `<a class="notes-link" href="#" onclick="event.preventDefault();openNotes(${task.lec},'${task.n.replace(/'/g,"\\'")}')">📓 Outline &amp; Notes</a>`;
         }
         if(task.lec && AUDIO[task.lec]){
-          actions += `<div class="notes-link audio-link" onclick="window.open('${AUDIO[task.lec]}','_blank')">▶ Play audio</div>`;
+          actions += `<a class="notes-link audio-link" href="${AUDIO[task.lec]}" target="_blank">▶ Play Audio</a>`;
         }
 
         secHTML+=`<div class="task">
