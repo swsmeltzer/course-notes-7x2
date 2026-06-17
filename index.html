@@ -41,7 +41,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width 0.4s ease}
 
 /* Filters */
-.filters{padding:10px 16px;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--bg)}
+.filters{padding:10px 16px;display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--bg);position:relative;z-index:10}
 .filters::-webkit-scrollbar{display:none}
 .filter-btn{flex-shrink:0;font-size:13px;font-weight:500;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .filter-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
@@ -69,7 +69,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sec-lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;padding:12px 16px 4px}
 
 /* Task */
-.task{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-top:1px solid var(--border);-webkit-tap-highlight-color:transparent}
+.task{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-top:1px solid var(--border);-webkit-tap-highlight-color:transparent;position:relative}
 .task:active{background:var(--bg)}
 .task-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;cursor:pointer;transition:all 0.15s}
 .task-check.checked{background:var(--green);border-color:var(--green)}
@@ -78,7 +78,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .task-name{font-size:14px;color:var(--text);line-height:1.4}
 .task-name.done{color:var(--hint);text-decoration:line-through}
 .task-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
-.task-actions{display:flex;gap:6px;margin-top:6px}
+.task-actions{display:flex;gap:6px;margin-top:8px;position:relative;z-index:5}
 .pill{font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
 .pill-time{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
 .pill-due{background:#FFF8EC;color:#8B5E00;border:1px solid #FAECC5}
@@ -86,7 +86,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 @media(prefers-color-scheme:dark){.pill-due{background:#2A1F08;color:#E8C56A;border-color:#4A3510}}
 
 /* Action buttons on task */
-.task-btn{font-size:12px;padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:4px}
+.task-btn{font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;display:inline-flex;align-items:center;gap:4px;min-height:36px;position:relative;z-index:5}
 .task-btn:active{background:var(--border)}
 .task-btn.notes-btn{color:var(--green);border-color:var(--green-light)}
 .task-btn.audio-btn{color:#185FA5;border-color:#B5D4F4}
