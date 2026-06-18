@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Helping Rel.">
-<title>Helping Relationships</title>
+<meta name="apple-mobile-web-app-title" content="CCEF Courses">
+<title>CCEF Biblical Counseling</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -125,16 +125,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .notes-saved.show{opacity:1}
 .notes-area{width:100%;min-height:120px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--text);background:var(--bg);resize:vertical;line-height:1.6;outline:none}
 .notes-area:focus{border-color:var(--green)}
+
+/* Course Switcher */
+.course-switcher{display:flex;gap:0;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+.course-switcher::-webkit-scrollbar{display:none}
+.course-btn{flex:1;padding:10px 8px;border:none;background:transparent;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;white-space:nowrap;}
+.course-btn.active{color:var(--green);border-bottom-color:var(--green);background:var(--green-light);}
+@media(prefers-color-scheme:dark){.course-btn.active{background:#0a3326;}}
+
 </style>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-title">
-    <span>Helping Relationships</span>
-    <small>CCEF Biblical Counseling · June–August 2025</small>
+    <span id="course-title">Helping Relationships</span>
+    <small id="course-subtitle">CCEF Biblical Counseling · June–August 2025</small>
   </div>
   <div class="sync-dot" id="sync-dot"></div>
+</div>
+<div class="course-switcher">
+  <button class="course-btn active" id="btn-hr" onclick="switchCourse('hr',this)">Helping Relationships</button>
+  <button class="course-btn" id="btn-dbc" onclick="switchCourse('dbc',this)">Dynamics of Biblical Change</button>
 </div>
 
 <div class="stats-strip">
@@ -725,15 +737,26 @@ function dot(s){document.getElementById('sync-dot').className='sync-dot '+(s||''
 
 // ── Supabase ───────────────────────────────────────────────
 async function dbFetch(){
-  const r=await fetch(`${SUPABASE_URL}/rest/v1/progress?id=eq.main&select=checked,notes`,{
+  const rowId = currentCourse === 'hr' ? 'main' : 'dbc';
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/progress?id=eq.${rowId}&select=checked,notes`,{
     headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}
   });
   if(!r.ok)throw new Error();
   const rows=await r.json();
+  if(rows.length===0){
+    // Create row if it doesn't exist yet
+    await fetch(`${SUPABASE_URL}/rest/v1/progress`,{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({id:rowId,checked:{},notes:{}})
+    });
+    return {checked:{}, notes:{}};
+  }
   return {checked:rows[0]?.checked||{}, notes:rows[0]?.notes||{}};
 }
 async function dbSave(checkedData, notesData){
-  const r=await fetch(`${SUPABASE_URL}/rest/v1/progress?id=eq.main`,{
+  const rowId = currentCourse === 'hr' ? 'main' : 'dbc';
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/progress?id=eq.${rowId}`,{
     method:'PATCH',
     headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify({checked:checkedData,notes:notesData,updated_at:new Date().toISOString()})
@@ -853,11 +876,19 @@ let activeTab = 'summary';
 
 function openNotes(lecNum, taskName){
   panelLecNum = lecNum;
-  const nb = NOTEBOOK[lecNum];
-  const sm = SUMMARIES[lecNum];
-  document.getElementById('panel-title').textContent = nb ? nb.title : taskName;
+  // For DBC, look up the notebook key; for HR, use numeric key
+  let title = taskName;
+  if(currentCourse === 'hr'){
+    const nb = NOTEBOOK[lecNum];
+    if(nb) title = nb.title;
+  } else {
+    const key = DBC_LEC_KEYS[lecNum];
+    if(key) title = key;
+  }
+  document.getElementById('panel-title').textContent = title;
 
   // Decide default tab
+  const sm = currentCourse === 'hr' ? SUMMARIES[lecNum] : null;
   activeTab = sm ? 'summary' : 'outline';
 
   renderNotesContent(lecNum);
@@ -871,8 +902,7 @@ function switchTab(tab){
 }
 
 function renderNotesContent(lecNum){
-  const nb = NOTEBOOK[lecNum];
-  const sm = SUMMARIES[lecNum];
+  const sm = currentCourse === 'hr' ? SUMMARIES[lecNum] : null;
   const noteKey = 'lec-'+lecNum;
   const savedNote = notesData[noteKey] || '';
 
@@ -916,22 +946,41 @@ function renderNotesContent(lecNum){
       body += `</div>`;
     }
   } else if(activeTab === 'outline'){
-    if(nb && nb.sections.length){
-      nb.sections.forEach(s=>{
-        body += `<div class="nb-section">`;
-        body += `<div class="nb-section-heading">${escHtml(s.h)}</div>`;
-        if(s.items.length===0){
-          body += `<div class="nb-placeholder">Fill in during lecture…</div>`;
-        } else {
-          s.items.forEach(item=>{
-            const isScrip = item.includes('~') || item.includes('(ESV)') || item.includes('(NIV)');
-            body += `<div class="nb-item${isScrip?' scripture':''}">${escHtml(item)}</div>`;
-          });
-        }
-        body += `</div>`;
-      });
+    if(currentCourse === 'hr'){
+      // HR uses {sections: [{h, items}]} format
+      const nb = NOTEBOOK[lecNum];
+      if(nb && nb.sections.length){
+        nb.sections.forEach(s=>{
+          body += `<div class="nb-section">`;
+          body += `<div class="nb-section-heading">${escHtml(s.h)}</div>`;
+          if(s.items.length===0){
+            body += `<div class="nb-placeholder">Fill in during lecture…</div>`;
+          } else {
+            s.items.forEach(item=>{
+              const isScrip = item.includes('~') || item.includes('(ESV)') || item.includes('(NIV)');
+              body += `<div class="nb-item${isScrip?' scripture':''}">${escHtml(item)}</div>`;
+            });
+          }
+          body += `</div>`;
+        });
+      } else {
+        body += `<div class="nb-placeholder">No outline available for this session.</div>`;
+      }
     } else {
-      body += `<div class="nb-placeholder">No outline available for this session.</div>`;
+      // DBC uses DBC_NOTEBOOK["Lecture Title"] = [items] format
+      const key = DBC_LEC_KEYS[lecNum];
+      const items = key ? DBC_NOTEBOOK[key] : null;
+      if(items && items.length){
+        body += `<div class="nb-section">`;
+        body += `<div class="nb-section-heading">Course Notebook Outline</div>`;
+        items.forEach(item=>{
+          const isScrip = item.includes('(ESV)') || item.includes('(NIV)') || item.includes('Psalm') || item.includes('Proverbs');
+          body += `<div class="nb-item${isScrip?' scripture':''}">${escHtml(item)}</div>`;
+        });
+        body += `</div>`;
+      } else {
+        body += `<div class="nb-placeholder">No outline available for this session.</div>`;
+      }
     }
   } else {
     // My Notes tab
@@ -1028,9 +1077,540 @@ function render(){
   updateStats();
 }
 
+// ── Course switching ───────────────────────────────────────
+function switchCourse(course, btn){
+  if(currentCourse === course) return;
+  currentCourse = course;
+  LOCAL_KEY = course === 'hr' ? LOCAL_KEY_HR : LOCAL_KEY_DBC;
+  document.querySelectorAll('.course-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(course === 'hr'){
+    window.DATA = HR_DATA;
+    window.NOTEBOOK = HR_NOTEBOOK;
+    window.AUDIO = HR_AUDIO;
+    document.getElementById('course-title').textContent = 'Helping Relationships';
+    document.getElementById('course-subtitle').textContent = 'CCEF Biblical Counseling · June–August 2025';
+  } else {
+    window.DATA = DBC_DATA;
+    window.NOTEBOOK = DBC_NOTEBOOK;
+    window.AUDIO = {};
+    document.getElementById('course-title').textContent = 'Dynamics of Biblical Change';
+    document.getElementById('course-subtitle').textContent = 'CCEF Biblical Counseling · 10 Weeks';
+  }
+  checked={};notesData={};filter='all';openWeeks=new Set([1]);
+  document.querySelectorAll('.filter-btn').forEach(b=>{b.classList.remove('active');if(b.textContent==='All')b.classList.add('active');});
+  localLoad();
+  loadFromCloud().then(()=>render());
+}
+
 // Boot
+// Alias HR data
+const HR_DATA = DATA;
+const HR_NOTEBOOK = NOTEBOOK;
+const HR_AUDIO = AUDIO;
+window.DATA = HR_DATA;
+window.NOTEBOOK = HR_NOTEBOOK;
+window.AUDIO = HR_AUDIO;
 localLoad();
 loadFromCloud().then(()=>render());
 </script>
 </body>
 </html>
+<script>
+// ── DBC NOTEBOOK OUTLINES ─────────────────────────────────────
+const DBC_NOTEBOOK = {
+  "Lecture 1: Course Introduction": [
+    "Introduction to Dynamics of Biblical Change",
+    "No other model of change or approach to counseling—besides a biblical one—has worship as the goal. The end of everything you seek to do is to love and adore God.",
+    "The change process is not self-referential but moves us out of ourselves.",
+    "Reflection on the hymn 'Fairest Lord Jesus' (4:33)",
+    "This is a creation hymn: Jesus as Creator, greater than all beautiful things, personal Redeemer.",
+    "The opportunity you have in Dynamics of Biblical Change (15:50)",
+    "Humans are intended to mono-task, not multi-task. We have the privilege to focus on a few important things.",
+    "T.S. Eliot: 'Where is the knowledge we have lost in information? Where is the wisdom we have lost in knowledge?'",
+    "Where are you going? (21:33)",
+    "As you begin to think about the dynamic of change, consider your destination.",
+    "What will you be? Alive, strong, and healthy forever. Liberated from all fears. No more sorrows.",
+    "You will be like Jesus when you see him (1 John 3).",
+    "Three questions as we journey to become like Jesus: (56:43)",
+  ],
+  "Lecture 2: Understanding the Person, Part 1": [
+    "Goal: Create a way of understanding and sorting through all that comes at us when we encounter complex people.",
+    "Reflection on the hymn 'Psalm 130 (From Depths of Woe)'",
+    "Notice dual evil: our sins and our sorrows.",
+    "Notice the invading and merciful God.",
+    "Notice the two voices of faith: the voice of need and the voice of gratitude.",
+    "An introduction to the Clyde Case Study (19:25)",
+    "Consider all the different things going on in Clyde's life simultaneously.",
+    "Three categories to sort through: circumstances/situation, the person (lifestyle and motives), and the people in Clyde's life.",
+    "Circumstances: What is going on around him — the external pressures, events, and situations?",
+    "The person: What is Clyde doing? What is he like? This is the lifestyle, the observable horizontal dimension.",
+    "Motives: Why does Clyde do what he does? This is the vertical dimension.",
+    "People: Who is in Clyde's world, and how do they affect and shape him?",
+  ],
+  "Lecture 3: Understanding the Person, Part 2": [
+    "Continuing the Clyde Case Study",
+    "Two questions to answer in order to understand a person:",
+    "What is his lifestyle? (the horizontal dimension)",
+    "What are his motives? What is Clyde's reality map? (the vertical dimension)",
+    "The vertical dimension asks the question, 'Why?' Our motives have to do with how we are relating to God.",
+    "A worldview (reality map) tells you what the world looks like.",
+    "A set of purposes and intentions describes what you want as you proceed into the world.",
+    "Scripture searches us (Hebrews 4:12-13). Our hearts deceive us (Jeremiah 17:9).",
+    "Consider four of Clyde's motives: Fear of man, Mammon, Pride, The love of pleasure.",
+    "Where do we begin with Clyde? Take stock of what you hear. Take stock of your commonalities with Clyde.",
+    "A biblical worldview knows we all have the same sin-sickness and troubles (1 Corinthians 10:12-13).",
+    "Questions that counselees implicitly ask.",
+  ],
+  "Lecture 4: Understanding the Person, Part 3": [
+    "Continuing the Clyde Case Study — what happened with Clyde?",
+    "Clyde and Dr. Powlison used Psalm 40 — this psalm gets at the relational seeking at the heart of change.",
+    "All biblical change moves in the vertical and horizontal. Only horizontal → moralism. Only vertical → pietism.",
+    "The 8 Questions (28:35) — David Powlison's framework for the change process.",
+    "Q1: What happens to you? What is the significant context or situation?",
+    "Q2: How are you reacting? Thoughts, words, actions, emotions?",
+    "Q3: What rules you, hijacks your heart? 'I want__? I fear__? I functionally believe__?'",
+    "Q4: What are the consequences and ripple effects?",
+    "Q5: Who is God relevant to this struggle? What does He say? What does He promise?",
+    "Q6: Respond to God from the heart. Stop. Listen. Ponder. Turn. Trust. Come.",
+    "Q7: Respond constructively into your situation. Speak. Act. Do. Choose.",
+    "Q8: What are the consequences when faith and love create ripple effects?",
+  ],
+  "Lecture 5: Understanding the Heart, Part 1": [
+    "Building a model using Jeremiah 17 (17:50)",
+    "Jeremiah 17 develops a metaphor for what life is like and where our core dilemma lies.",
+    "The Three Trees Model (38:42)",
+    "Tree on the right: a thorn bush. Tree on the left: a fruit tree. Tree in the middle: our Redeemer.",
+    "The heat (baking sun) = our circumstances: the voices that beguile us and the threats that assail us. (Q1)",
+    "The triune God is present in the world he created. (Q5)",
+    "God is the sovereign speaker — his word illumines who he is and reveals what is unsearchable.",
+    "The Redeemer is the ultimate fruit tree who entered our plight to lay down his life for us.",
+    "The Holy Spirit mediates the living presence and power of Christ.",
+    "The heart (Q3 & Q6): shorthand for the vertical dimension of our lives.",
+    "It is easy to think of the heart as a psychological category, but here it is the vertical dimension.",
+    "Thorns (Q2) flow from the heart toward God and the heat.",
+    "Good fruit (Q7) flows from the heart when faith responds to God.",
+  ],
+  "Lecture 6: Understanding the Heart, Part 2": [
+    "Three vignettes demonstrating the model in real life.",
+    "Vignette 1: Five-year-old Gwenyth confesses to her dad (David Powlison) that she told a lie.",
+    "Fear of man rules Gwenyth's heart in the lie. Right from the start, good fruit: honesty and active conscience.",
+    "David operationalized Proverbs 29:25 for his five-year-old.",
+    "Vignette 2: Gwenyth does not want to go to her school play — afraid of being laughed at. Same heart, different heat.",
+    "Vignette 3: Gwenyth tells her dad a story of how she prevailed in a tempting scenario.",
+    "Implications: thorns and good fruit arise at the intersection of heart and heat.",
+    "The issues of the heart are relational — fear of man means abandoning God to orient my life toward another person.",
+    "The nature of progressive sanctification",
+    "Clair Davis' yo-yo metaphor (51:41): The Christian life is like a yo-yo held by a man walking up stairs.",
+    "The goal is not to get God to throw the yo-yo to the second floor; the goal is to shorten the string.",
+    "Growth markers: asking forgiveness more intelligently, quickness to repent, lessening frequency and intensity of outbursts.",
+  ],
+  "Lecture 7: The 'Heart' is Vertical, Not Internal": [
+    "Connecting the Three Trees & the Eight Questions",
+    "Central question: What is the relationship between Q3 and Q2, and Q6 and Q7?",
+    "Confusion arises when we think 'I need to understand what is in my heart and what flows out of my heart.'",
+    "This leads us to believe Q3 and Q6 only apply to internal things — thoughts and feelings.",
+    "THE KEY INSIGHT: The 'heart' is vertical, not internal.",
+    "The connection of heart-to-fruit and heart-to-thorns is a VERTICAL/horizontal relationship, not internal/external.",
+    "Vertical = your fundamental relationship with the Lord, either engaging or not engaging with him.",
+    "Horizontal = how you treat other people, or how you treat physical objects.",
+    "In most cases vertical=internal and horizontal=external, but there are times when this differs.",
+    "Example: Adam and Eve hiding — the physical act of hiding is still a Q3 (heart) issue, not Q2.",
+    "Example: Jesus on adultery in Matthew 5:28 — looking lustfully internally is still Q2 (how are you reacting?).",
+    "Example: Praying out loud in your car — even though an audio recorder could capture it, this is Q6 in action.",
+  ],
+  "Case Study Discussion: Esther (Exercise 1)": [
+    "Trees & Qs Worksheet Practice with Esther — apply the model to this case study.",
+  ],
+  "Case Study Discussion: Mark (Exercise 2)": [
+    "Trees & Qs Worksheet Practice with Mark — apply the model to this case study.",
+  ],
+  "Lecture 8: The Wisdom Found in Christ, Part 1": [
+    "Hymn: 'How Firm a Foundation' — God is the one speaking; he promises to be with us through every trial.",
+    "Introduction: Christian reflection on severely broken lives and complex situations is rare.",
+    "One disempowering lie: our Christian faith is sufficient for easy cases but not the hard ones.",
+    "Our goal is to probe wisely and biblically into broken aspects of human life.",
+    "Case Study of a paranoid schizophrenic (8:29)",
+    "The session plan: first 30 minutes getting the story, next 30 minutes going for the heart.",
+    "The rules of human interaction do not change because a man is insane — treat him with utmost respect.",
+    "This young man's identity is not reduced to his diagnosis. We must normalize the abnormal.",
+    "The turning point: the counselee agreed to receive feedback — he opened the door for interaction.",
+    "The counselor moved from the language of 'grandiosity and terror' to 'pride and fear of man.'",
+    "A paranoid schizophrenic who lives in pride and fear of man lives in a hermetically-sealed ball.",
+    "A discussion of John's further discipleship.",
+  ],
+  "Lecture 9: The Wisdom Found in Christ, Part 2": [
+    "What is wisdom? Wisdom is the skill of living well — ordered first to God, then to others.",
+    "Wisdom addresses the whole person and the whole situation.",
+    "Jesus Christ is the wisdom of God (1 Corinthians 1:24, 30) — he is the tree at the center.",
+    "Wisdom is not a technique — it is a person: Christ himself.",
+    "The wisdom of God entered our world as a servant and a sufferer to rescue us.",
+    "Application: the wise counselor brings the wisdom of Christ to bear on actual human situations.",
+    "Case study reflection: what does wisdom look like in a complex, broken situation?",
+    "Three key movements of wisdom in counseling: understanding, engaging, and speaking.",
+  ],
+  "Lecture 10: Understanding the Situation, Part 1": [
+    "Hymn: 'Be Still My Soul' — a hymn about suffering and the faithfulness of God.",
+    "Only one specific suffering is mentioned: 'when dearest friends depart.' The rest are general categories.",
+    "This hymn, like the Psalms, speaks in metaphors, inviting us to personalize the experience.",
+    "General categories of human experience: Grief, Pain, Change, Mystery, Tears, Sorrow, Fears, Things taken away.",
+    "No mention of sin in this hymn because the focus is on sorrow.",
+    "Three categories of 'heat' (situation) (17:00)",
+    "Category 1: Voices that speak to us (people, media, culture, the enemy, our own minds).",
+    "Category 2: Our own body and physical life — what's happening inside us biologically and emotionally.",
+    "Category 3: General hardships and trials — the weight of life's difficulties.",
+    "Understanding the situation means becoming a good listener and observer of what surrounds a person.",
+    "The goal: don't rush past the heat; help people see how God meets them in the specifics of their situation.",
+  ],
+  "Lecture 11: Understanding the Situation, Part 2": [
+    "Hymn: 'It Is Well with My Soul' — a major key hymn of faith with undercurrents of tension and sorrow.",
+    "Horatio Spafford wrote this after losing his daughters at sea — this is a hymn born out of suffering.",
+    "Diverse factors compose our life situations: peace, sorrows, Satan, sin, and hope.",
+    "Sickness, evil, and consequences as aspects of the heat",
+    "Evil: Systemic, cultural, and social evils shape us whether we notice them or not.",
+    "The problem of systemic evil: people are oppressed by structures outside their own choices.",
+    "Our bodies: physical illness, limitation, suffering — these are part of the heat too.",
+    "Consequences: we live with the ongoing effects of what we and others have done.",
+    "The biblical categories help us see the full range of what a person carries.",
+    "Practical implication: ask about the situation in all its dimensions before rushing to the heart.",
+  ],
+  "Lecture 12: Understanding the Situation, Part 3": [
+    "Marketplace of options & opportunities (0:00)",
+    "This aspect of heat is the most dominant and pervasive in any situation.",
+    "What you choose reveals who you are — the world is waiting for you.",
+    "As a counselor, your goal is to know the person. Even what music they listen to is revelatory.",
+    "Vignette: one snowstorm and four different reactions — same heat, different hearts.",
+    "General hardships, troubles, & limitations (12:47)",
+    "One easy door into another person's life is the category of general hardships.",
+    "Grumbling and complaining are topics people are willing to discuss — enter here.",
+    "General hardships: outer circumstances (job, finances, family, bereavement) and inner circumstances (health, hormones).",
+    "Grumbling & complaining in Numbers 11:1–21:9 (23:20)",
+    "Ten vignettes in this section; two aspects of our wiring: beliefs (unbelief) and intentions (desires, cravings).",
+    "Vignette 1 (Num 11:1-3): Christ as mediator standing in the gap between God's just anger and our sinfulness.",
+    "Vignette 2 (Num 11:4): 'They desired a desire.' — showcases the interaction between heart and heat.",
+  ],
+  "Lecture 13: Practical Application: James, Part 1": [
+    "Why James? This letter is written to you and to me — it is about the basic things of Christian life.",
+    "James is a savvy pastor who alternates general truth with examples.",
+    "The specific hardships James deals with are among the most basic and difficult human situations.",
+    "Q1 — The heat James addresses: Money, Interpersonal conflict, Ill health.",
+    "Q2 — How are you reacting? The lifestyle of Anti-Wisdom.",
+    "False wisdom is earthy, unspiritual, demonic (3:15) — in the image of Satan, contrary to the Holy Spirit.",
+    "'Chaos and every evil practice' invites us to personalize (3:16).",
+    "'Dirty hands' metaphor: what you do, the horizontal dimension of your life (4:8).",
+    "Q3 — What rules you? The heart of James.",
+    "James identifies two core idolatries: riches and 'man's empty praise.'",
+    "James 4:1-2: Conflicts arise from desires that wage war within you.",
+    "Where your treasure is, there your heart will be also.",
+  ],
+  "Lecture 14: Practical Application: James, Part 2": [
+    "Q4 — Consequences: James amps up to ultimate bad consequences — God opposes the proud (4:6).",
+    "Vivid imagery of consequences: misery, rot, fire, and slaughter (5:1-5).",
+    "Little negative consequences are signposts to the ultimate consequence of separating from God.",
+    "Q6 — Respond to God from the heart.",
+    "James describes the new heart as the 'meekness of wisdom' — the foundation of all beauty (3:14).",
+    "Meekness is the fundamental sense of being under someone else — not weakness but mastered strength.",
+    "Meekness is to die to self. It is life from the dead.",
+    "The core of the solution to sin is repentance — coming back in need to the One who promises more grace.",
+    "James 4:6-10 contains the lengthiest didactic teaching on repentance and faith in the NT.",
+    "Q7 — 'Good conduct' may be thought of as 'a beautiful life' (3:13).",
+    "Peacemaking graces: constructive anger, gentleness, open to reason, impartial.",
+    "Q8 — The harvest of righteousness is sown in peace by those who make peace (3:18).",
+    "Case study: Woman with anger in her marriage — how the model applies to a complex interpersonal situation.",
+  ],
+  "Lecture 15: Influences on the Heart, Part 1": [
+    "Hymn: 'Amazing Grace' — one person's story becoming the universal story of grace.",
+    "Introduction to the question: What forms and shapes us?",
+    "The Three Trees Model focuses primarily on what's going on inside us. But what comes in to shape us?",
+    "Category 1: True images, voices, and role models that teach us how to live rightly.",
+    "Category 2: False images, voices, and role models that teach us wrongly.",
+    "Category 3: The word of God — Scripture as the primary shaping influence.",
+    "Category 4: The community of faith — those around us who model and speak into our lives.",
+    "The heat doesn't just come at us from outside — it also comes in to form us from childhood.",
+    "We are shaped by the voices we listen to, the images we receive, and the role models we imitate.",
+    "The counselor's task: understand not just what's happening now but what has formed this person.",
+  ],
+  "Lecture 16: Influences on the Heart, Part 2": [
+    "True images, voices, and role models teach us how to live and rightly orient us.",
+    "When a family in ministry was in crisis with their child, the father said: 'There are only a handful of people that I really trust.' The issue of trust is massive in counseling ministry.",
+    "Scripture usually works from the bottom up — from the standpoint of life — and in this context, God reveals who he is.",
+    "The relational categories from a prior class's set of 95 papers about the people they most trust (in order): Spouses (32), Friends (23), Parents (17), Other family members (10), People from church/ministry (8), Counseling relationship (3).",
+    "What causes trust? The communicable attributes of Jesus Christ experienced in others.",
+    "We get tastes of Christ in fallible people.",
+    "Our knowledge of another person is built when we actively listen, ask questions, and respond by engaging.",
+    "There is some kind of mutuality in trusting relationships.",
+    "What is at the center of the counseling process? (57:05)",
+    "YOUR WALK: The initial aspect of every constructive relationship starts with who you are as a person.",
+    "The single most influential factor in whether you can help another person is who you are — your walk, life, and faith.",
+  ],
+  "Lecture 17: Sin and the Heart": [
+    "Hymn: 'Joy to the World' — Christ comes to make blessings flow as far as the curse is found.",
+    "The heart as a door (9:05)",
+    "So far in the class, the heat has been the main door into the heart.",
+    "Scripture has a rich view of people: both vertical and horizontal dimensions, intimately connected.",
+    "X-Ray Questions (David Powlison) give variety of ways to ask the question that aims for the heart.",
+    "Desire (14:05)",
+    "This lecture zeros in on desire, lust, craving, demand, felt-need.",
+    "Think about the essential nature of sinfulness. The core of sin as desire.",
+    "Unbelief erases God. Pride exalts self. Fear of man exalts others.",
+    "Desire language lets you get specific because desires have an object: 'I want ___. I fear ___.'",
+    "James 4:1-2: 'What causes quarrels? Is it not this — your passions that are at war within you?'",
+    "The heart as will (47:00)",
+    "The language of choosing, turning, and deciding — we are moral agents, not merely victims.",
+    "Idolatry of the heart — when we give our worship to the wrong things.",
+    "Three Trees review and application: how all these categories fit together.",
+  ],
+  "Lecture 18: The Holy Spirit's Role in Sanctification": [
+    "Goal: understand how the Holy Spirit plays his role in the work of change using the Three Trees Model.",
+    "Zooming in on Q5 (Who is God?) and Q6 (How does my heart respond to the Lord?)",
+    "Key question: 'How do you break down the workload between yourself and the Lord?'",
+    "Possibilities: 100% God / 0% me; 50%/50%; 90%/10%; 10%/90%.",
+    "THE ANSWER: 100% God and 100% me. (11:45)",
+    "The most helpful way to understand gospel growth: a perfect overlap.",
+    "It is entirely you growing, striving, learning, changing, obeying, repenting.",
+    "And it is entirely the Spirit animating that process, pouring into you, and shaping you.",
+    "You are clay in the potter's hands (utterly passive) and a frontline soldier (extremely active).",
+    "To say '100% me' — are we in danger of undercutting God? No, because your effort is what the Spirit is after.",
+    "Scripture on the 100/100 ratio: Philippians 2:12-13 — 'Work out your own salvation... for it is God who works in you.'",
+    "The Three Trees model focuses on fruit bearing — gradual, subtle change like how fruit grows.",
+  ],
+  "Lecture 19: Sin and Transformation, Part 1": [
+    "Hymn: 'I Bind Unto Myself' (St. Patrick's Breastplate) — I join myself to Christ.",
+    "The dynamics of repentance & faith",
+    "1. Stop and gain perspective — the three most important words in the process: 'I was wrong.'",
+    "2. Own up to the total picture: see, think, and feel accurately.",
+    "Identify the outer evils: the heat.",
+    "Identify what's wrong specifically and accurately: the inner evils.",
+    "Cut through tendencies to blindness, vagueness, euphemisms, and generalities.",
+    "Cut through tendencies to the 'buts and becauses' (self-justification).",
+    "Sin is serious before God — cut through tendencies to see problems only before your eyes or others' eyes.",
+    "MINOR KEY faith: Confess, naming the problem. Seek tangible, needed mercies.",
+    "MAJOR KEY faith: Rely and trust. Joy and thanks — for good reasons, heartfelt.",
+  ],
+  "Lecture 20: Sin and Transformation, Part 2": [
+    "Continuing the dynamics of repentance & faith.",
+    "2. Own up to the total picture (continued).",
+    "A third way between activism (energies go outward) and introspection (energies go inward):",
+    "Accurate self-knowledge that leads to two radical extraspections: faith (toward God) and love (toward others).",
+    "The Second Big Arrow — Extraspection #2 (the horizontal response).",
+    "Faith works through love as you act into your world, situation, and heat.",
+    "Live with personal integrity. Redeemed and redemptive people become truly human.",
+    "Gain a framework for biblical self-knowledge.",
+    "Ask for help — 'one another' cuts both ways.",
+    "Application: how does repentance and faith actually work in daily life?",
+    "The rhythm of minor key (need, confession) and major key (faith, joy, thanks) in the Christian life.",
+  ],
+  "Lecture 21: Living with Personal Integrity, Part 1": [
+    "Hymn: 'Jesus! What a Friend' — a summary of the class through the lens of this hymn.",
+    "A letter from a student.",
+    "'Weakness' in stanza two gets at the core of the human dilemma — dual evil: our sins and sorrows.",
+    "Dual reference: we are 'tempted' and 'tried' by what happens to us and from what arises within us.",
+    "Faith always responds to a revelation of a God who enters in. We see who Jesus is and what he does.",
+    "The DNA of faith: we respond to fundamental promises of God's grace.",
+    "We sing a rich portrayal of the different species of faith: minor key (need) and major key (joy and gratitude).",
+    "The pattern in the first four stanzas: we express need in the light of who Jesus is. The refrain expresses joy.",
+    "The final stanza is joy and confidence in relationship.",
+    "This hymn summarizes everything we have studied in Dynamics of Biblical Change.",
+    "Living with personal integrity means integrating everything we've learned into daily life.",
+  ],
+  "Lecture 22: Living with Personal Integrity, Part 2": [
+    "Saying 'no' — there is a place in the vocabulary of godliness for 'No.'",
+    "Learn to say 'No, Different, or Later' because faith working through love says YES.",
+    "Jesus' ultimate goal is to elicit faith in people.",
+    "Cases of sexual violation are always a 'No!' — and that no can sometimes be creative.",
+    "Church discipline and disciplining children are cases of saying a loving no.",
+    "Walk as a wise counselor of others: 'Walk-Love-Know-Speak-Do'",
+    "Everything we learn becomes something we are to give away — content, wisdom, and attitude to reach out.",
+    "Where do you begin in counseling ministry? Think about how you make prayer requests.",
+    "The Bible gives powerful examples of prayers that ask God to change me, not just the situation.",
+    "James 5:13-18: a pastoral counseling moment where we pray for the sick and confess sins to each other.",
+    "The heat (39:51): three more facets — observing others' suffering, Satan, and the dew of blessing.",
+    "The Good Samaritan — what are you doing about someone else's suffering?",
+    "What do you do when you see your brother's fault? (Matthew 7:1-5)",
+  ],
+};
+
+// ── DBC COURSE DATA ───────────────────────────────────────────
+const DBC_DATA = [
+{id:1,title:"Week 1",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 1: Course Introduction",t:77,lec:1},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"\"Suffering & Psalm 119\" by David Powlison",t:45},
+    {n:"\"Think Globally, Act Locally\" by David Powlison",t:30},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"\"Introduce Yourself\" Assignment",t:30},
+    {n:"Week 1 Community Discussion Board",t:20},
+    {n:"Clyde Case Study",t:60},
+  ]},
+  {label:"Attend",type:"attend",tasks:[
+    {n:"Live Engagement 1 with OI (Optional)",t:60},
+  ]},
+]},
+{id:2,title:"Week 2",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 2: Understanding the Person, Part 1",t:49,lec:2},
+    {n:"Lecture 3: Understanding the Person, Part 2",t:50,lec:3},
+    {n:"Lecture 4: Understanding the Person, Part 3",t:64,lec:4},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"\"Reading the Bible for Personal Application\" by David Powlison",t:20},
+    {n:"\"Why Do We Pray?\" by David Powlison",t:15},
+    {n:"\"How Does Scripture Change You?\" by David Powlison",t:25},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 2 Community Discussion Board",t:20},
+    {n:"Significant Scripture Paper",t:90},
+  ]},
+]},
+{id:3,title:"Week 3",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 5: Understanding the Heart, Part 1",t:83,lec:5},
+    {n:"Lecture 6: Understanding the Heart, Part 2",t:60,lec:6},
+    {n:"Lecture 7: The \"Heart\" is Vertical, Not Internal",t:14,lec:7},
+    {n:"Case Study Discussion: Esther (Exercise 1)",t:20,lec:8},
+    {n:"Case Study Discussion: Mark (Exercise 2)",t:20,lec:9},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"Powlison, How Does Sanctification Work? chs. 7–11",t:120},
+    {n:"Trees & Qs Model (Canvas)",t:15},
+    {n:"Trees & Qs Editable Worksheet (Canvas)",t:10},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 3 Community Discussion Board",t:20},
+  ]},
+  {label:"Begin",type:"complete",tasks:[
+    {n:"About the Suffering & Refuge Project (read instructions)",t:15},
+  ]},
+]},
+{id:4,title:"Week 4",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 8: The Wisdom Found in Christ, Part 1",t:60,lec:10},
+    {n:"Lecture 9: The Wisdom Found in Christ, Part 2",t:44,lec:11},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"Groves, \"How Do You Counsel Non-Christians?\" (Optional)",t:20},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 4 Community Discussion Board",t:20},
+    {n:"Suffering & Refuge Project Part 1: The Worksheet",t:90},
+    {n:"Questions for Live Engagement 2 (Optional, 48 hrs ahead)",t:15},
+  ]},
+]},
+{id:5,title:"Week 5",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 10: Understanding the Situation, Part 1",t:63,lec:12},
+    {n:"Lecture 11: Understanding the Situation, Part 2",t:45,lec:13},
+    {n:"Lecture 12: Understanding the Situation, Part 3",t:46,lec:14},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"\"'Peace, be still': Learning Psalm 131 by Heart\" by David Powlison",t:30},
+    {n:"\"Revisiting Idols of the Heart and Vanity Fair\" by David Powlison",t:60},
+    {n:"\"X-ray Questions\" by David Powlison",t:25},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 5 Community Discussion Board",t:20},
+  ]},
+  {label:"Attend",type:"attend",tasks:[
+    {n:"Live Engagement 2 with OI (Optional)",t:60},
+  ]},
+]},
+{id:6,title:"Week 6",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 13: Practical Application: James, Part 1",t:82,lec:15},
+    {n:"Lecture 14: Practical Application: James, Part 2",t:41,lec:16},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 6 Community Discussion Board",t:20},
+    {n:"Suffering & Refuge Project Part 2: The Paper",t:180},
+  ]},
+  {label:"Begin",type:"complete",tasks:[
+    {n:"Sin & Grace Project (due Week 10)",t:15},
+  ]},
+]},
+{id:7,title:"Week 7",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 15: Influences on the Heart, Part 1",t:81,lec:17},
+    {n:"Lecture 16: Influences on the Heart, Part 2",t:68,lec:18},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 7 Community Discussion Board",t:20},
+  ]},
+]},
+{id:8,title:"Week 8",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 17: Sin and the Heart",t:79,lec:19},
+    {n:"Lecture 18: The Holy Spirit's Role in Sanctification",t:44,lec:20},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"\"The Constructive Displeasure of Mercy\" by David Powlison",t:60},
+    {n:"\"A Personal Liturgy of Confession\" by David Powlison",t:25},
+    {n:"\"Familial Counseling\" by David Powlison",t:40},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 8 Community Discussion Board",t:20},
+    {n:"Questions for Live Engagement 3 (Optional, 48 hrs ahead)",t:15},
+  ]},
+]},
+{id:9,title:"Week 9",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 19: Sin and Transformation, Part 1",t:77,lec:21},
+    {n:"Lecture 20: Sin and Transformation, Part 2",t:76,lec:22},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"Gembola, \"God Is Making His People Good: Counseling & Virtue Formation\"",t:60},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 9 Community Discussion Board",t:20},
+  ]},
+  {label:"Attend",type:"attend",tasks:[
+    {n:"Live Engagement 3 with OI (Optional)",t:60},
+  ]},
+]},
+{id:10,title:"Week 10",dates:"",sections:[
+  {label:"Watch",type:"watch",tasks:[
+    {n:"Lecture 21: Living with Personal Integrity, Part 1",t:84,lec:23},
+    {n:"Lecture 22: Living with Personal Integrity, Part 2",t:63,lec:24},
+  ]},
+  {label:"Read",type:"read",tasks:[
+    {n:"How to Study for the Final Exam (Canvas)",t:20},
+  ]},
+  {label:"Assignments",type:"complete",tasks:[
+    {n:"Week 10 Community Discussion Board",t:20},
+    {n:"Sin & Grace Project",t:180},
+    {n:"Final Exam",t:120},
+    {n:"Course Evaluation",t:15},
+  ]},
+]},
+];
+
+// Notebook lookup for DBC by lecture number
+const DBC_LEC_KEYS = {
+  1: "Lecture 1: Course Introduction",
+  2: "Lecture 2: Understanding the Person, Part 1",
+  3: "Lecture 3: Understanding the Person, Part 2",
+  4: "Lecture 4: Understanding the Person, Part 3",
+  5: "Lecture 5: Understanding the Heart, Part 1",
+  6: "Lecture 6: Understanding the Heart, Part 2",
+  7: "Lecture 7: The 'Heart' is Vertical, Not Internal",
+  8: "Case Study Discussion: Esther (Exercise 1)",
+  9: "Case Study Discussion: Mark (Exercise 2)",
+  10: "Lecture 8: The Wisdom Found in Christ, Part 1",
+  11: "Lecture 9: The Wisdom Found in Christ, Part 2",
+  12: "Lecture 10: Understanding the Situation, Part 1",
+  13: "Lecture 11: Understanding the Situation, Part 2",
+  14: "Lecture 12: Understanding the Situation, Part 3",
+  15: "Lecture 13: Practical Application: James, Part 1",
+  16: "Lecture 14: Practical Application: James, Part 2",
+  17: "Lecture 15: Influences on the Heart, Part 1",
+  18: "Lecture 16: Influences on the Heart, Part 2",
+  19: "Lecture 17: Sin and the Heart",
+  20: "Lecture 18: The Holy Spirit's Role in Sanctification",
+  21: "Lecture 19: Sin and Transformation, Part 1",
+  22: "Lecture 20: Sin and Transformation, Part 2",
+  23: "Lecture 21: Living with Personal Integrity, Part 1",
+  24: "Lecture 22: Living with Personal Integrity, Part 2",
+};
+</script>
