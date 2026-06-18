@@ -182,7 +182,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <script>
 const SUPABASE_URL = 'https://jhvfzpjexjlbfzazuutc.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpodmZ6cGpleGpsYmZ6YXp1dXRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3MTIzODMsImV4cCI6MjA5NzI4ODM4M30.Z8t0LDfIMdLfwVY-C0ieLeNxXfgt_7W47VIPyI6b1ck';
-const LOCAL_KEY = 'helping-rel-v3';
+let LOCAL_KEY = 'helping-rel-v3';
 
 let NOTEBOOK = {
   1: {
@@ -720,6 +720,7 @@ let AUDIO = {
 // ── State ──────────────────────────────────────────────────
 let checked={}, notesData={}, filter='all', openWeeks=new Set([1]);
 let syncTimer=null, panelLecNum=null;
+let currentCourse='hr';
 
 // ── Local storage ──────────────────────────────────────────
 function localLoad(){
