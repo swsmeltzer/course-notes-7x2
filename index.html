@@ -772,6 +772,7 @@ async function loadFromCloud(){
     localSave();dot('ok');
   }
   catch(e){localLoad();dot('err');}
+  finally{render();}
 }
 function scheduleSave(){
   clearTimeout(syncTimer);
@@ -1623,7 +1624,8 @@ if(currentCourse === 'dbc'){
 }
 
 localLoad();
-loadFromCloud().then(()=>render());
+render();
+loadFromCloud();
 </script>
 </body>
 </html>
