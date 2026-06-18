@@ -1610,23 +1610,25 @@ const DBC_LEC_KEYS = {
 };
 
 // ── Boot ───────────────────────────────────────────────────
-const urlParams = new URLSearchParams(window.location.search);
-currentCourse = urlParams.get('course') === 'dbc' ? 'dbc' : 'hr';
-LOCAL_KEY = currentCourse === 'hr' ? LOCAL_KEY_HR : LOCAL_KEY_DBC;
+document.addEventListener('DOMContentLoaded', function(){
+  const urlParams = new URLSearchParams(window.location.search);
+  currentCourse = urlParams.get('course') === 'dbc' ? 'dbc' : 'hr';
+  LOCAL_KEY = currentCourse === 'hr' ? LOCAL_KEY_HR : LOCAL_KEY_DBC;
 
-if(currentCourse === 'dbc'){
-  DATA = DBC_DATA;
-  NOTEBOOK = DBC_NOTEBOOK;
-  AUDIO = {};
-  document.getElementById('course-title').textContent = 'Dynamics of Biblical Change';
-  document.getElementById('course-subtitle').textContent = 'CCEF Biblical Counseling · 10 Weeks';
-  document.getElementById('btn-hr').classList.remove('active');
-  document.getElementById('btn-dbc').classList.add('active');
-}
+  if(currentCourse === 'dbc'){
+    DATA = DBC_DATA;
+    NOTEBOOK = DBC_NOTEBOOK;
+    AUDIO = {};
+    document.getElementById('course-title').textContent = 'Dynamics of Biblical Change';
+    document.getElementById('course-subtitle').textContent = 'CCEF Biblical Counseling · 10 Weeks';
+    document.getElementById('btn-hr').classList.remove('active');
+    document.getElementById('btn-dbc').classList.add('active');
+  }
 
-localLoad();
-render();
-loadFromCloud();
+  localLoad();
+  render();
+  loadFromCloud();
+});
 </script>
 </body>
 </html>
