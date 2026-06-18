@@ -1108,12 +1108,8 @@ function switchCourse(course, btn){
 const HR_DATA = DATA;
 const HR_NOTEBOOK = NOTEBOOK;
 const HR_AUDIO = AUDIO;
-localLoad();
-loadFromCloud().then(()=>render());
-</script>
-</body>
-</html>
-<script>
+// DBC data defined below
+
 // ── DBC NOTEBOOK OUTLINES ─────────────────────────────────────
 const DBC_NOTEBOOK = {
   "Lecture 1: Course Introduction": [
@@ -1610,4 +1606,10 @@ const DBC_LEC_KEYS = {
   23: "Lecture 21: Living with Personal Integrity, Part 1",
   24: "Lecture 22: Living with Personal Integrity, Part 2",
 };
+
+// ── Boot ───────────────────────────────────────────────────
+localLoad();
+loadFromCloud().then(()=>render());
 </script>
+</body>
+</html>
