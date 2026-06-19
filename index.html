@@ -119,6 +119,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .nb-item{font-size:14px;color:var(--text);line-height:1.55;padding:4px 0 4px 12px;border-left:2px solid var(--border);margin-bottom:4px}
 .nb-item.scripture{font-style:italic;color:var(--muted);border-left-color:var(--green-light)}
 .nb-placeholder{font-size:13px;color:var(--hint);font-style:italic;padding:4px 0 4px 12px;border-left:2px dashed var(--border)}
+.draft-prompt-box{background:var(--green-light);border:1px solid var(--green);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:14px;line-height:1.5;}
+.prompt-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.prompt-pill{background:var(--green);color:#fff;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;}
+.prompt-instructions{margin-bottom:10px;color:var(--text);}
+.prompt-section-heading{font-weight:700;margin-top:12px;margin-bottom:6px;color:var(--green-dark);}
+.prompt-questions{margin:6px 0 10px 0;padding-left:22px;}
+.prompt-questions li{margin-bottom:6px;}
+.prompt-pagecount{font-size:13px;font-weight:600;color:var(--green-dark);margin-bottom:8px;}
+.prompt-format{font-size:12px;color:var(--muted);background:rgba(0,0,0,0.04);border-radius:6px;padding:8px 10px;margin-top:10px;}
+@media(prefers-color-scheme:dark){
+  .draft-prompt-box{background:#0a3326;border-color:#1D9E75;}
+  .prompt-section-heading{color:#5DCAA5;}
+  .prompt-pagecount{color:#5DCAA5;}
+  .prompt-format{background:rgba(255,255,255,0.06);}
+}
 
 /* Notes textarea */
 .notes-section{margin-top:20px}
@@ -197,6 +212,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="notes-page-title" id="draft-page-title">Draft</div>
   </div>
   <div class="notes-page-body" id="draft-page-body">
+    <div id="draft-prompt-box" class="draft-prompt-box"></div>
     <textarea id="draft-textarea" class="notes-area" style="min-height:50vh;font-size:16px;line-height:1.6;" placeholder="Start writing here. Your draft saves automatically and syncs across your devices." oninput="saveDraft(this.value)"></textarea>
     <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;">
       <button class="filter-btn" style="background:var(--green);color:#fff;border:none;" onclick="exportDraftToWord()">⬇️ Export to Word</button>
@@ -1613,8 +1629,63 @@ function openDraft(taskId, taskName){
   const ta = document.getElementById('draft-textarea');
   ta.value = draftsData[taskId] || '';
   updateWordCount(ta.value);
+  renderAssignmentPrompt(taskName);
   document.getElementById('draft-page').classList.add('open');
   window.scrollTo(0,0);
+}
+
+function renderAssignmentPrompt(taskName){
+  const a = HR_ASSIGNMENTS[taskName];
+  const box = document.getElementById('draft-prompt-box');
+  if(!a){
+    box.innerHTML = `<div class="nb-placeholder">No specific instructions loaded yet for this assignment. Write freely below — your draft still saves and syncs.</div>`;
+    box.style.display = 'block';
+    return;
+  }
+  let html = '';
+  html += `<div class="prompt-meta">`;
+  if(a.due) html += `<span class="prompt-pill">📅 Due ${escHtml(a.due)}</span>`;
+  if(a.points) html += `<span class="prompt-pill">${escHtml(a.points)}</span>`;
+  html += `</div>`;
+  html += `<div class="prompt-instructions">${escHtml(a.instructions)}</div>`;
+
+  if(a.sections){
+    a.sections.forEach(s=>{
+      html += `<div class="prompt-section-heading">${escHtml(s.heading)}</div>`;
+      html += `<div class="prompt-instructions">${escHtml(s.body)}</div>`;
+      if(s.questions){
+        html += `<ul class="prompt-questions">`;
+        s.questions.forEach(q=>{html += `<li>${escHtml(q)}</li>`;});
+        html += `</ul>`;
+      }
+      if(s.pageCount) html += `<div class="prompt-pagecount">Page count: ${escHtml(s.pageCount)}</div>`;
+    });
+  }
+
+  if(a.questions){
+    html += `<ul class="prompt-questions">`;
+    a.questions.forEach(q=>{html += `<li>${escHtml(q)}</li>`;});
+    html += `</ul>`;
+  }
+
+  if(a.requirements && a.requirements.length){
+    html += `<div class="prompt-section-heading">Requirements</div>`;
+    html += `<ul class="prompt-questions">`;
+    a.requirements.forEach(r=>{html += `<li>${escHtml(r)}</li>`;});
+    html += `</ul>`;
+  }
+
+  if(a.format){
+    html += `<div class="prompt-format">Format: typed, 12-pt Times New Roman, 1" margins, double-spaced, page numbers in footer. Type your name at the top of page 1. Cite sources per the Canvas Citation & Formatting Guide. You may be downgraded for exceeding the page limit or not following format.</div>`;
+    html += `<div class="prompt-format"><strong>Writing tip:</strong> Be personal (processed and responded to, not just information), thoughtful (synthesize material, connect to Scripture and other lectures), and specific (concrete real-life detail, not general statements). E.g. instead of "I have learned how conflict can be destructive," try "I see how I avoid and 'go silent' when my wife confronts me..."</div>`;
+  }
+
+  if(a.isMeeting){
+    html += `<div class="prompt-format">This is a meeting-based assignment — use this space to draft your reflection notes or log entry afterward.</div>`;
+  }
+
+  box.innerHTML = html;
+  box.style.display = 'block';
 }
 
 function closeDraft(){
@@ -6653,6 +6724,81 @@ const DBC_READINGS = {
       ],
     },
   ],
+};
+
+
+// ── HR Assignment Prompts & Requirements ──────────────────────
+const HR_ASSIGNMENTS = {
+  "Reading Reflections, Week 1": {
+    due: "Sat Jun 27, 2026, 10:59pm",
+    points: "Graded for completion",
+    instructions: "Using the text box below, write 3-4 sentences sharing one way that the readings impacted you.",
+    requirements: ["3-4 sentences", "Graded for completion only"],
+  },
+  "Self-Assessment": {
+    due: "Sat Jun 27, 2026, 10:59pm",
+    points: "100 points possible",
+    instructions: "Finish watching the lectures in Week 1, then complete a self-assessment answering the questions below. Evaluate how well you currently do these things (or don't do these things), assessing yourself according to what you've learned from the lectures, and discuss a vision for growth for each question. Give examples. Please be personal, thoughtful, and specific. There is no need to write an introduction or conclusion. Write a ½ page response per question, and type out the question as a heading before answering each one.",
+    questions: [
+      "Do you initiate? Do you move toward people?",
+      "Do you draw out what is meaningful to the other person?",
+      "Are you alert to the balance between knowing a person and being known by them?",
+      "Do you enjoy your conversations with people? What do you enjoy?",
+      "Do you actually pray for the hard things that you hear from others?",
+      "Do you follow up in conversation afterwards?",
+    ],
+    requirements: ["½ page per question (≈3 pages total)", "Type each question as a heading", "No intro or conclusion needed", "Be personal, thoughtful, and specific — give examples"],
+    format: true,
+  },
+  "Ephesians Reflection & \"Personal\" Paper": {
+    due: "Sat Jul 4, 2026, 10:59pm",
+    points: "100 points possible",
+    instructions: "Write one paper (2 sections) reflecting on the lectures and readings completed so far. There is no need to write an introduction or conclusion.",
+    sections: [
+      {
+        heading: "Section 1: Ephesians 4:1-16 Reflection",
+        body: "Read Ephesians 4:1-16. In half a page, give your reflections on the passage. Write this passage about you, in your own words — for example: \"I have been called by the gentle and patient God, and I see evidence of that everyday. With that in mind, how can I do anything but know and care for others in a way similar to how I have been treated...\" Don't worry about verses 7-10. Feel free to condense some sections. Don't let your paraphrase be longer than the actual passage. This is a chance to practice being personal, in hopes it will overflow into your relationships. How is this passage applied to you, and what does it change about what you do?",
+        pageCount: "0.5 page",
+      },
+      {
+        heading: "Section 2: Illustrate \"Personal\"",
+        body: "The word \"personal\" will be a theme throughout the lectures. Use thoughtful, specific, real-life (current) examples as your illustrations. Thoughtfully connect your reflections to the lecture content.",
+        questions: [
+          "How would you define and describe \"personal\"? What does it mean to be personal?",
+          "Illustrate how God is personal.",
+          "Illustrate how you have not been personal in relationships with others.",
+          "Illustrate how you have been personal in relationships with others.",
+        ],
+        pageCount: "1–1.5 pages",
+      },
+    ],
+    requirements: ["Total page count: 1.5–2 pages", "No intro or conclusion needed", "Use real-life, specific, current examples"],
+    format: true,
+  },
+  "Small Group 1 (Prompts & Questions)": {
+    due: "Sat Jul 4, 2026, 10:59pm",
+    points: "Ungraded",
+    instructions: "Welcome to your first Small Group assignment! This first meeting focuses on getting to know your fellow members and getting everyone on the same page regarding expectations. Before you begin: assign a leader (or rotate leaders each meeting) to guide the group and keep time; set a soft time limit of about 1 hour; you don't need to answer every question — deep, constructive discussion on even one question is the goal. Open with prayer.",
+    questions: [
+      "Introduce yourself briefly.",
+      "From Side by Side, ch. 5: that rhythm from seen (personal circumstances) to unseen (spiritual realities about God and what he is doing) is an important one. How will you practice this?",
+    ],
+    requirements: ["Each member marks attendance on the Attendance Quiz afterward", "(Optional) submit group questions to your OI before the next Live Engagement"],
+    isMeeting: true,
+  },
+  "Extended Conversation, Week 2 Prompt": {
+    due: "Sat Jul 4, 2026, 10:59pm",
+    points: "Ungraded",
+    instructions: "Meet with your ECP. After reflecting on your meeting time, summarize your thoughts in 3-5 sentences and record them in your ECP log (see the Week 2 prompts in the ECP Log assignment). Use your reflections to help prepare for your Final Paper.",
+    requirements: ["3-5 sentence log entry", "Use the Week 2 ECP Log conversation prompts"],
+    isMeeting: true,
+  },
+  "Yalom Reading Reflections, Week 2": {
+    due: "Sat Jul 4, 2026, 10:59pm",
+    points: "Ungraded",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    requirements: ["3-5 sentences"],
+  },
 };
 
 
