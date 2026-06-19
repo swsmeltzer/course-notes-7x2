@@ -1402,7 +1402,7 @@ function renderNotesContent(lecNum){
 
   // Tab bar
   // Check for detailed notes
-  const det = (currentCourse === 'dbc') ? (DBC_DETAILED[lecNum] || null) : null;
+  const det = (currentCourse === 'dbc') ? (DBC_DETAILED[lecNum] || null) : (HR_DETAILED[lecNum] || null);
 
   const tabs = `
     <div class="notes-tabs">
@@ -1443,8 +1443,8 @@ function renderNotesContent(lecNum){
       sm.scripture.forEach(s=>{body += `<div class="nb-item scripture">${escHtml(s)}</div>`;});
       body += `</div>`;
     }
-  } else if(activeTab === 'detailed' && currentCourse === 'dbc'){
-    const det = DBC_DETAILED[lecNum];
+  } else if(activeTab === 'detailed'){
+    const det = (currentCourse === 'dbc') ? DBC_DETAILED[lecNum] : HR_DETAILED[lecNum];
     if(det){
       // Thesis
       body += `<div class="nb-section">`;
@@ -3943,6 +3943,188 @@ const DBC_LEC_KEYS = {
   23: "Lecture 21: Living with Personal Integrity, Part 1",
   24: "Lecture 22: Living with Personal Integrity, Part 2",
 };
+
+// ── HR Detailed Notes (sample: lectures 1-3) ──────────────────
+const HR_DETAILED = {
+  1: {
+    thesis: "Biblical change in relationships is not primarily a matter of professional technique but of growing in wise, humility-and-love-shaped conversations that flow from Scripture into both everyday friendships and formal ministry settings.",
+    summary: "Ed Welch opens the course with personal introduction and a 45-year history of the class (originally Wayne Mack's 'Methods' class, then Paul Tripp's, now Welch's 'Helping Relationships'). He sets out the broad goal — to grow in wise conversations — and explains that wisdom means listening to God, being thoughtful, and being skillful. He then names three specific goals: connecting ministry methods to Scripture (both content and manner), building one simple conversational platform that scales from everyday friendships into ministry conversations, and bringing this model into the culture of a local church. He illustrates the difference between formal counseling-mode conversation and ordinary relationship through a story about taking his daughter to breakfast, and closes with a story of a quiet, reticent man in his church who began reaching out to newcomers after watching others model simple, low-key care.",
+    flow: [
+      "Personal introduction: Ed Welch's background, family, hobbies, and role at CCEF.",
+      "History of the course: Wayne Mack's 'Methods' class (How to Counsel Biblically), Paul Tripp's Instruments in the Redeemer's Hands, now Welch's Helping Relationships and Caring for One Another.",
+      "The broad goal: growing in wise conversations — wisdom defined as listening to God, being thoughtful, and being skillful.",
+      "Goal 1: Scripture shapes both the content (truth) and the method (manner/packaging) of what we say.",
+      "Illustration: Jesus' directness with religious leaders who led others astray, versus his gentleness with those already feeling the weight of their sin.",
+      "Goal 2: a simple conversational platform meant to extend from everyday relationships into more formal ministry conversations.",
+      "Story: taking his teenage daughter to breakfast and being asked, 'Dad, are you counseling me?' — a caution against switching into 'project mode' with people we love.",
+      "Goal 3: bringing this model into the culture of the local church so that small acts of care ripple outward.",
+      "Story: the 'stealth pastors' — men praying for and watching for one another, and a naturally reticent man who began reaching out to newcomers after seeing others model it simply.",
+      "Closing vision: small acts (confessing porn use and asking for help, expressing grief, saying thank you for a kind word) change the culture of a small group or church community.",
+    ],
+    notes: [
+      { heading: "1. The course's history and the call to 'ordinary' ministry", points: [
+        "The class has existed at CCEF for roughly 45 years under three instructors: Wayne Mack (Methods), Paul Tripp (Instruments in the Redeemer's Hands), and now Ed Welch (Helping Relationships, Caring for One Another).",
+        "Welch has personally taught it for 12 years and describes being shaped by it himself, alongside watching students learn to care well for others.",
+      ]},
+      { heading: "2. The broad goal: growing in wise conversations", points: [
+        "Wisdom means listening to God, being thoughtful as you pursue life, and being skillful in what you do.",
+        "We routinely set goals for Bible reading, health, and exercise, but rarely set goals for our conversations — even though words occupy more of our time than almost anything else.",
+        "The aspiration: that the change in your conversations would be visible enough that people close to you notice and remark on it.",
+      ]},
+      { heading: "3. Goal 1 — Scripture shapes both content and method", points: [
+        "Biblical counseling means Scripture shapes not only what we say (the truth) but how we say it (the method/packaging).",
+        "'Truth, of course, falls short if it isn't packaged in love.'",
+        "Jesus modeled this with sin specifically: piercing directness toward religious leaders who led others into lies, but profound gentleness toward those already weighed down by their own sin.",
+      ]},
+      { heading: "4. Goal 2 — One simple, scalable platform", points: [
+        "The aim is a simple method dense with application — starting in everyday conversational skills, then extending into more formal 'ministry conversations.'",
+        "Caution: don't let care for someone tip into clinical 'project mode.' The breakfast story with his daughter illustrates this — she sensed the shift in tone and called it out directly: 'Dad, are you counseling me?'",
+        "The goal is for ministry conversations to be founded on and continuous with ordinary relational skills, not a separate professional register.",
+      ]},
+      { heading: "5. Goal 3 — Transforming a church's culture", points: [
+        "Small, simple acts of care by one person ripple outward: praying for a friend, asking for prayer, noticing a newcomer.",
+        "The 'stealth pastors' story: two or three men in Welch's church privately committed to know and pray for one specific person. A naturally reticent man saw this simple pattern, said 'I can do that,' and began reaching out to newcomers himself — without being told to.",
+        "Other examples: a person confessing a struggle with pornography and asking for help shifts what a small group considers normal to talk about; a simple word of thanks for being prayed for changes the texture of a community's conversations.",
+      ]},
+    ],
+    terms: [
+      { term: "Wise conversations", def: "The course's central goal: conversations shaped by listening to God, thoughtful reflection, and relational skill." },
+      { term: "Methods / Helping Relationships", def: "The historical names of this CCEF course, taught successively by Wayne Mack, Paul Tripp, and Ed Welch." },
+      { term: "Ministry conversations", def: "Conversations that arise when someone asks for help — ranging from five minutes to an entire afternoon — meant to be a natural extension of everyday relational skill." },
+      { term: "Stealth pastors", def: "Welch's term for ordinary church members who quietly commit to praying for and caring for specific people without an official title or role." },
+    ],
+    takeaways: [
+      "Set the same kind of intentional goals for your conversations that you'd set for Bible reading or health.",
+      "Let Scripture shape not just what you say about hard topics (like sin) but how you say it — watch Jesus' example of pairing truth with gentleness.",
+      "Beware shifting unconsciously into 'project mode' with people you love — relationship, not technique, is the foundation.",
+      "One person's small, simple act of care (asking, praying, confessing a struggle) can shift the culture of an entire small group or church.",
+    ],
+    questions: [
+      "What would it look like for you to set an actual goal for growing in your conversations, the way you might set a goal for Bible reading or exercise?",
+      "Where do you see the temptation to slip from ordinary relationship into 'project mode' with someone close to you?",
+      "Who is a 'stealth pastor' in your own church or community — someone modeling simple, low-key care that others could imitate?",
+      "What would it look like for you to be the 'one person' whose small act of openness shifts your small group's culture?",
+    ],
+  },
+  2: {
+    thesis: "Ephesians 4:1-16 establishes that ordinary believers — not only ordained pastors — are given by the ascended Christ to do the work of ministry, and that the method for this work is humility and love.",
+    summary: "Welch reads and unpacks Ephesians 4:1-16 as the foundational passage for the whole course. He draws two main points. First, every believer is a 'pastor' in the small-p sense — someone called and equipped by the ascended Christ to care for others' souls, regardless of formal ordination. Second, the manner in which this ministry happens matters as much as the fact of it: humility and love are the method. He illustrates humility's posture through a personal story of failing to acknowledge a grieving friend's news on the phone, and her gentle correction — showing that humility means being willing to learn, including being corrected by the very people we are trying to help.",
+    flow: [
+      "Reading of Ephesians 4:1-16 (edited for length), framing the whole course.",
+      "Point 1: 'You are the one who does the work of ministry' — Christ ascended and gave gifts to equip ordinary believers, not just officeholders.",
+      "Reframing: every believer is a small-p 'pastor,' someone whose job is to care for another person's soul.",
+      "Point 2: the manner of ministry — humility, gentleness, patience, enduring love — is itself the method, not just a nice extra.",
+      "Humility defined: submission before God first, then before others; not knowing what's best; praying because we need Jesus.",
+      "Personal story: a grieving church friend calls, and Welch twice defers to his wife rather than acknowledging her loss — and is gently corrected by the caller herself.",
+      "Implication: humility creates a self-correcting posture — we ask others whether what we said was helpful, and we're willing to hear 'no.'",
+    ],
+    notes: [
+      { heading: "1. Ephesians 4 as the foundation for the whole course", points: [
+        "Welch identifies this as the single passage 'foundational to really most everything that we do' in the class.",
+        "Two teachings are drawn out: who does ministry (point 1) and how it's done (point 2).",
+      ]},
+      { heading: "2. You are the one who does the work of ministry", points: [
+        "When Christ ascends as the anointed King, he does something unexpected — instead of receiving gifts, he gives gifts to his people for the work of ministry.",
+        "These gifts (apostles, prophets, evangelists, shepherds, teachers) exist 'to equip the saints... for the work of ministry' — meaning ordinary believers, not just officeholders, do the actual work.",
+        "Reframing the student's identity: 'You are a pastor. Little p pastor, but you are a pastor' — someone whose job is caring for another person's soul, since everything connects to a person's relationship with Christ.",
+      ]},
+      { heading: "3. Humility and love are the method", points: [
+        "Ephesians 4:2 names the manner: humility, gentleness, patience, bearing with one another in love.",
+        "Humility is singled out: it is fundamentally our submission before God, expressed secondarily as humility before others.",
+        "Humility doesn't always know what to do or what's best or most important — and so humility prays. It reminds us of our need for Jesus.",
+      ]},
+      { heading: "4. Humility admits and learns from mistakes", points: [
+        "Humility knows we will say unhelpful or even hurtful things in conversation, and it remains willing to learn from the care we give.",
+        "Story: a grieving friend calls Welch's home after receiving devastating news about her sister. Twice, Welch defers the call to his wife Sherry without acknowledging the news or the friend's grief.",
+        "The friend gently but directly names what happened: 'I know you love me, and I know you heard what happened... but you didn't say a word.'",
+        "This models humility's posture: being eager to hear correction, even from the very people we're seeking to help.",
+      ]},
+      { heading: "5. A self-correcting system", points: [
+        "Humility creates an ongoing feedback loop: we can ask others directly whether what we said was helpful or not.",
+        "This posture rests on 'confidence in Christ, but not a lot of confidence in ourselves' — we expect to need correction and growth.",
+      ]},
+    ],
+    terms: [
+      { term: "Small-p pastor", def: "Welch's term for any believer (not only the ordained) whose calling includes caring for another person's soul." },
+      { term: "Humility (in this context)", def: "Submission before God first, expressed secondarily before others; not assuming you know what's best; a posture that drives you to prayer and to Jesus." },
+      { term: "Self-correcting system", def: "The practice of regularly asking others whether your words or care were actually helpful, rooted in humility rather than self-confidence." },
+    ],
+    takeaways: [
+      "See yourself as a 'small-p pastor' — someone genuinely equipped and called by Christ to care for others' souls, whether or not you hold any formal church office.",
+      "Remember that humility and love are not soft add-ons to ministry — they are the method itself.",
+      "Build a habit of asking people directly whether your words were actually helpful, and be ready to hear correction.",
+      "Notice when you default to deflecting hard emotional moments (like Welch's phone call) rather than simply acknowledging what someone is going through.",
+    ],
+    questions: [
+      "What does it change for you to think of yourself as a 'small-p pastor' in your relationships, rather than waiting for someone with a title to do the caring?",
+      "Where in your own life have you been corrected — like the woman correcting Welch — for failing to acknowledge someone's pain?",
+      "What would it look like to build genuine humility (not knowing what's best, needing to pray) into how you approach a hard conversation this week?",
+      "How comfortable are you asking someone directly, 'Was that helpful or not helpful?' after trying to care for them?",
+    ],
+  },
+  3: {
+    thesis: "Three real hindrances — the lecture format itself, the chronic undervaluing of ordinary conversations (in both church and professional counseling), and our digital culture — will work against the course's goals, and recognizing them should drive us to prayer rather than discouragement.",
+    summary: "Welch names three hindrances to growing in wise conversations. First, the lecture format itself models a kind of one-directional, extended-monologue 'teaching' posture that is the opposite of what good conversation looks like — students must consciously translate lecture content into the short, two-way exchanges of real conversation. Second, both church culture (which prizes the ordained pastor and the sermon) and the professional counseling world (which prizes credentials) tend to undervalue ordinary, brief, unlicensed conversations — even though research and experience show that trusted friends are 'the gold standard' of helpers. Third, digital and social media culture trains us into modes of engagement (curated, factional, surface-level) that work against humble, attentive, loving conversation. The lecture closes with a prayer asking God to grow listeners in spiritual — not merely technical — skills of humble, loving conversation.",
+    flow: [
+      "Hindrance 1: the lecture format itself — Welch speaking uninterrupted for long stretches models the opposite of real conversation.",
+      "Challenge to students: actively translate ideas from lectures into actual things you would say to another person, and take advantage of live engagement times to ask questions.",
+      "Hindrance 2: the chronic undervaluing of ordinary conversations, both in church culture (where the sermon and the ordained pastor are the center) and in professional counseling culture (which prizes credentials and licensure).",
+      "Story: making hospital visits as a lay elder and being asked, 'Where's the real pastor?'",
+      "The 'trade secret' of professional counseling, dating to research from the 1960s: friends are the gold standard for helpers.",
+      "Story: a small group's 45-minute time of thanksgiving for what only Christ could have done in their lives — an example of ordinary conversation having outsized impact.",
+      "Hindrance 3: digital culture and social media train us into modes of engagement (curated, factional, surface-level) that work against meaningful listening and humble, loving conversation.",
+      "Closing prayer: asking God for spiritual — not merely ordinary — skills of humble, loving conversation that build up the body of Christ.",
+    ],
+    notes: [
+      { heading: "1. Hindrance 1: the lecture format", points: [
+        "Welch openly names the tension: in a conversation, no one should speak uninterrupted for 30 minutes — yet that's exactly the medium being used to teach the course.",
+        "He challenges students to actively bridge the gap: take lecture ideas and translate them into what you would actually say to a real person, in a real conversation, today.",
+        "Students are encouraged to use every scheduled live engagement opportunity to ask questions, push for biblical rationale, and share or request specific real-life applications.",
+      ]},
+      { heading: "2. Hindrance 2: undervaluing ordinary conversations — in the church", points: [
+        "Even though Ephesians 4 clearly teaches that ordinary people do the work of ministry, church culture often centers everything on the sermon and the ordained senior pastor.",
+        "Specialized theological vocabulary (justification, impassibility, propitiation, covenant) can reinforce the sense that 'real' ministry is a professional, pulpit-centered activity.",
+        "Story: Welch, as a lay elder making hospital visits, sometimes encountered the unspoken (or spoken) question, 'Where's the real pastor?'",
+      ]},
+      { heading: "3. Hindrance 2 (continued): undervaluing ordinary conversations — in professional counseling", points: [
+        "The professional counseling world values credentials, licensure, and certification — and rightly so, skill matters.",
+        "But professional conversations may carry weight for reasons other than pure skillfulness: more dedicated time, knowing what unhelpful things to avoid saying, or trained pattern-recognition.",
+        "The 'trade secret,' backed by research dating to the 1960s: friends are the gold standard for helpers — the person who already knows and loves you tends to be the most helpful presence in your life.",
+      ]},
+      { heading: "4. A story of ordinary conversation's power", points: [
+        "Welch's small group spent 45 minutes simply giving thanks for things only Christ could have done in their lives.",
+        "The result: profound silence, reluctance to leave, and a felt sense of being shaped more by this ordinary conversation than by sermons, books, or online content that same week.",
+      ]},
+      { heading: "5. Hindrance 3: digital culture", points: [
+        "Public spaces (restaurants, sidewalks, cars) show people glued to screens rather than engaged in conversation with those around them.",
+        "Social media and curated news function as a kind of performance stage: they limit meaningful engagement, enhance factions and comparison, and resist nuanced discussion.",
+        "This digital environment 'doesn't know anything about meaningful listening' or the humility-and-love method the course is built around — and it will be an ongoing hindrance, especially for coming generations.",
+      ]},
+      { heading: "6. Closing prayer", points: [
+        "Welch prays for spiritual skills, not merely ordinary skills — skills worked out in ordinary ways but animated and made genuinely helpful by the Spirit.",
+        "The prayer asks that growth in humble, loving conversation would lead to unity and closeness, building up the body of Christ and drawing people to Jesus.",
+      ]},
+    ],
+    terms: [
+      { term: "Lecture format hindrance", def: "The built-in tension of teaching conversational skill through an extended monologue rather than an actual two-way exchange." },
+      { term: "Trade secret (friends as gold standard)", def: "Long-standing research finding (dating to the 1960s) that trusted friends, not credentialed professionals, are typically the most effective helpers in a person's life." },
+      { term: "Digital hindrance", def: "The way social media and curated digital content train people into factional, surface-level engagement that works against humble, attentive listening." },
+    ],
+    takeaways: [
+      "Actively translate what you learn in lecture-style teaching into the actual words you'd say in a real, brief conversation — don't let the medium become the message.",
+      "Resist the assumption (common in both church and professional culture) that only credentialed people do 'real' ministry — ordinary, loving friendship is the gold standard of help.",
+      "Notice how much of your relational time is spent in curated digital spaces rather than face-to-face, humble, attentive conversation — and look for ways to reclaim it.",
+      "Pray specifically for spiritual (Spirit-animated) skill in conversation, not merely technical competence.",
+    ],
+    questions: [
+      "Where do you see your own church or community unconsciously treating 'real' ministry as something only credentialed leaders do?",
+      "Can you think of a time when a friend's ordinary, unlicensed care for you was more powerful than a more formal or professional intervention?",
+      "How has digital and social media engagement shaped (or hindered) the way you have conversations with the people physically around you?",
+      "What would it look like to actively push back against these three hindrances — the format, the undervaluing of ordinary care, and digital culture — in your own life this week?",
+    ],
+  },
+};
+
 
 // ── DBC Required Reading: Week-by-week articles ──────────────
 const DBC_READINGS = {
