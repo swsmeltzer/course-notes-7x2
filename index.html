@@ -2001,6 +2001,7 @@ function renderAssignmentPrompt(taskName){
     wk.reflection.forEach(r=>{html += `<li>${escHtml(r)}</li>`;});
     html += `</ul>`;
     html += `<div class="prompt-format"><strong>Log:</strong> after reflecting on your time, summarize your thoughts in 3-5 sentences below.</div>`;
+    html += renderReadingGuide(taskName);
     box.innerHTML = html;
     box.style.display = 'block';
     return;
@@ -2058,8 +2059,61 @@ function renderAssignmentPrompt(taskName){
     html += `<div class="prompt-format">This is a meeting-based assignment — use this space to draft your reflection notes or log entry afterward.</div>`;
   }
 
+  // Append reading guide for Yalom/Welch assignments
+  html += renderReadingGuide(taskName);
+
   box.innerHTML = html;
   box.style.display = 'block';
+}
+
+function renderReadingGuide(taskName){
+  if(typeof HR_READING_GUIDES === 'undefined') return '';
+
+  // Determine week number from task name
+  const weekMatch = taskName.match(/Week (\d+)/);
+  if(!weekMatch) return '';
+  const week = parseInt(weekMatch[1]);
+  const guide = HR_READING_GUIDES[week];
+  if(!guide) return '';
+
+  const isYalom = /Yalom/i.test(taskName);
+  const isECP = /Extended Conversation/i.test(taskName);
+  const isReflection = /Reflection Paper/i.test(taskName);
+
+  if(!isYalom && !isECP && !isReflection) return '';
+
+  let html = '';
+  html += `<div style="margin-top:16px;border-top:2px solid var(--green-light);padding-top:14px;">`;
+  html += `<div class="prompt-section-heading" style="font-size:13px;margin-bottom:10px;">📚 Reading Guide for This Week</div>`;
+
+  if(guide.yalom){
+    html += `<div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:6px;">Yalom — ${escHtml(guide.yalom.chapters)}</div>`;
+    guide.yalom.themes.forEach(t=>{
+      html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;">${escHtml(t.heading)}</div>`;
+      html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);">${escHtml(t.summary)}</div>`;
+    });
+    html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Yalom vs. Scripture</div>`;
+    html += `<div class="nb-item scripture" style="padding-left:0;border-left:none;font-size:var(--reading-font-size,14px);">${escHtml(guide.yalom.scripture_contrast)}</div>`;
+    html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Reflection Prompts</div>`;
+    html += `<ul class="prompt-questions">`;
+    guide.yalom.reflection_prompts.forEach(p=>{html += `<li style="font-size:var(--reading-font-size,14px);">${escHtml(p)}</li>`;});
+    html += `</ul>`;
+  }
+
+  if(guide.welch && (isECP || isReflection)){
+    html += `<div style="font-weight:700;font-size:13px;color:var(--text);margin-top:12px;margin-bottom:6px;">Welch — ${escHtml(guide.welch.book)}, ${escHtml(guide.welch.chapters)}</div>`;
+    guide.welch.themes.forEach(t=>{
+      html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;">${escHtml(t.heading)}</div>`;
+      html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);">${escHtml(t.summary)}</div>`;
+    });
+    html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Cross-Reference Prompts</div>`;
+    html += `<ul class="prompt-questions">`;
+    guide.welch.reflection_prompts.forEach(p=>{html += `<li style="font-size:var(--reading-font-size,14px);">${escHtml(p)}</li>`;});
+    html += `</ul>`;
+  }
+
+  html += `</div>`;
+  return html;
 }
 
 function closeDraft(){
@@ -7199,7 +7253,7 @@ const HR_ASSIGNMENTS = {
   "Yalom Reading Reflections, Week 2": {
     due: "Sat Jul 4, 2026, 10:59pm",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
 };
@@ -7258,45 +7312,45 @@ Object.assign(HR_ASSIGNMENTS, {
 
   // ── Weeks 3-9 Yalom Reading Reflections (identical except due date) ──
   "Yalom Reading Reflections, Week 3": {
-    due: "see Canvas for current date",
+    due: "Sat Jul 11, 2026, 10:59pm",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
   "Yalom Reading Reflections, Week 4": {
     due: "see Canvas for current date",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
   "Yalom Reading Reflections, Week 5": {
     due: "see Canvas for current date",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
   "Yalom Reading Reflections, Week 6": {
     due: "Sat Aug 1, 2026, 10:59pm",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
   "Yalom Reading Reflections, Week 7": {
     due: "Sat Aug 8, 2026, 10:59pm",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
   "Yalom Reading Reflections, Week 8": {
     due: "Sat Aug 15, 2026, 10:59pm",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
   "Yalom Reading Reflections, Week 9": {
     due: "Sat Aug 22, 2026, 10:59pm",
     points: "Ungraded",
-    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture.",
+    instructions: "Write 3-5 sentences reflecting on where you see points of contact between what you read this week in Yalom's book and Scripture. Highlight the major themes of Yalom's book and contrast that with what Scripture says.",
     requirements: ["3-5 sentences"],
   },
 
@@ -7835,6 +7889,372 @@ const HR_READINGS = {
       ],
     },
   ],
+};
+
+
+// ── Yalom & Welch Reading Guides by Week ──────────────────────
+// Used to enrich the Yalom Reading Reflection and Extended Conversation prompts
+const HR_READING_GUIDES = {
+  2: {
+    yalom: {
+      chapters: "Chapters 1–10",
+      themes: [
+        {
+          heading: "The Therapist's Personal Disclosure (chs. 1–3)",
+          summary: "Yalom opens by arguing that the therapist's own humanity — including honest self-disclosure of struggles, errors, and feelings — is not a liability to hide but a therapeutic resource. He critiques the traditional 'blank screen' model of the detached therapist and argues that genuine presence and authentic encounter is what actually heals. The relationship itself, not technique, is the agent of change.",
+        },
+        {
+          heading: "The Here-and-Now (chs. 4–6)",
+          summary: "Yalom introduces his central organizing principle: what matters most in therapy is what is happening between therapist and client in the present moment of the session, not historical reconstruction of the past. He argues that the therapeutic relationship functions as a 'social microcosm' — how a person relates to the therapist mirrors how they relate to everyone else — and that exploring this in real time is uniquely powerful.",
+        },
+        {
+          heading: "Avoiding the 'Ivory Tower' — Real Presence (chs. 7–10)",
+          summary: "Yalom warns against therapists hiding behind professional distance and theoretical frameworks as a way of managing their own anxiety rather than genuinely engaging clients. He argues for 'presence' as the therapist's primary gift — being genuinely moved by the client's suffering, willing to be changed by the encounter, and showing up as a real human being, not a technique-dispenser.",
+        },
+      ],
+      scripture_contrast: "Yalom's emphasis on the healing power of authentic relationship and genuine human presence has real resonance with Scripture — God himself enters our story personally in Jesus, not as a detached observer (John 1:14, Hebrews 4:15). However, Yalom's framework is entirely horizontal: the relationship between two humans is healing in itself. Scripture adds a vertical dimension — ultimate healing flows from God, and human relationships matter precisely because they reflect and mediate divine love (1 John 4:11–12). Yalom's 'presence' is a secular shadow of what the incarnation makes fully real.",
+      reflection_prompts: [
+        "Where do you see Yalom's insistence on 'genuine presence over technique' reflected in what Welch has taught about humility and entering someone's world?",
+        "Yalom argues that the therapist's honest self-disclosure is healing. Where does Scripture affirm this (James 5:16, Galatians 6:2) — and where does it ground it differently?",
+        "What does it mean that Yalom finds healing in the therapeutic relationship itself, while Scripture says ultimate healing flows from Christ through his people?",
+      ],
+    },
+    welch: {
+      book: "Side by Side",
+      chapters: "Chapters 4–6",
+      themes: [
+        {
+          heading: "Ch. 4 — We Need Each Other",
+          summary: "Welch establishes the biblical foundation for mutual care: Christians are designed by God to need one another, not as a concession to weakness but as a reflection of how God made us. He grounds this in the 'one another' commands of the New Testament and the image of the body of Christ, where every part genuinely needs every other part. Isolation is not simply lonely — it is a departure from our God-given design.",
+        },
+        {
+          heading: "Ch. 5 — Moving from Seen to Unseen",
+          summary: "Welch introduces a key conversational move: from the visible circumstances of someone's life (what's happening to them, what they're doing) to the unseen spiritual realities beneath (what God is doing, who God is to them in this). He argues that good care always makes this move — not rushing past the concrete details of someone's life, but also not getting stuck there, always asking what God's words and presence mean for this specific situation.",
+        },
+        {
+          heading: "Ch. 6 — God's Presence as the Foundation",
+          summary: "Welch argues that the most important thing we can offer someone who is suffering is not advice, solutions, or even our own presence — but the mediated reality of God's own presence. We point people to a God who is near (Psalm 46), who knows their name, who has not forgotten them. This is what distinguishes Christian care from even the best secular counseling: we bring Someone, not just something.",
+        },
+      ],
+      reflection_prompts: [
+        "How does Welch's 'seen to unseen' move (ch. 5) connect to or differ from Yalom's insistence on the healing power of the present-moment relationship?",
+        "Yalom says the therapist's presence heals. Welch says God's presence — mediated through us — heals. What's the difference, and why does it matter practically?",
+      ],
+    },
+  },
+  3: {
+    yalom: {
+      chapters: "Chapters 11–20",
+      themes: [
+        {
+          heading: "Working with Dreams and Meaning (chs. 11–13)",
+          summary: "Yalom takes an unusual approach to dreams — not Freudian symbol-decoding, but exploring what the dream says about the person's current existential concerns. He is less interested in what the dream 'means' in some fixed symbolic sense and more interested in what it reveals about the client's fears, longings, and unspoken preoccupations in the present moment. Dreams are windows into what is most alive and unresolved in the person right now.",
+        },
+        {
+          heading: "The Therapist's Feelings as Data (chs. 14–16)",
+          summary: "Yalom argues that the therapist's own emotional reactions to the client — including difficult ones like boredom, irritation, or attraction — are clinically valuable data rather than interference to be suppressed. If the therapist feels a certain way about a client, others in the client's life likely feel similarly. Exploring this honestly (with appropriate professional boundaries) can open up patterns the client has never been able to see from the outside.",
+        },
+        {
+          heading: "Avoiding Cowardice — Saying the Hard Thing (chs. 17–20)",
+          summary: "Yalom directly addresses the temptation to avoid discomfort in therapeutic relationships — to smooth over difficult observations, avoid confrontation, or let significant things pass unnamed. He argues that this kind of relational cowardice ultimately fails the client. The therapist who avoids saying hard things out of anxiety or desire for approval is prioritizing their own comfort over the client's genuine wellbeing.",
+        },
+      ],
+      scripture_contrast: "Yalom's chapters 17–20 have striking resonance with the biblical call to speak truth in love (Ephesians 4:15) and with Proverbs' consistent description of the friend who 'wounds' with honest words as more faithful than one who flatters (Proverbs 27:6). However, Yalom's framework for saying hard things is purely pragmatic — it works. Scripture grounds this in character and covenant: we speak hard things because we genuinely love the other person and because God has first spoken honestly to us, at great cost to himself (Romans 5:8).",
+      reflection_prompts: [
+        "Yalom says boredom or irritation with a client is data — what does that suggest about how we should treat our own emotional reactions to difficult people we're trying to help?",
+        "Where do you see Yalom's 'avoiding cowardice' (chs. 17–20) reflected in what Welch has taught about speaking to sin, or about the skill of following the person rather than deflecting?",
+        "Yalom grounds honest confrontation in what works. Where does Scripture ground it, and does that change anything practically about how you'd actually do it?",
+      ],
+    },
+    welch: {
+      book: "Side by Side",
+      chapters: "Chapters 7–9",
+      themes: [
+        {
+          heading: "Ch. 7 — When You Don't Know What to Say",
+          summary: "Welch addresses one of the most common fears in caring for others: not knowing what to say. He argues that presence — simply showing up, staying, and being willing to sit in discomfort alongside someone — is often more valuable than words. He distinguishes between words that help (specific, personal, Scripture-rooted) and words that often don't (clichés, premature solutions, minimizing comparisons), and gives practical guidance for navigating silence well.",
+        },
+        {
+          heading: "Ch. 8 — Do You See What I See?",
+          summary: "Welch introduces the practice of naming and acknowledging what is genuinely good, hard, or significant in another person's life — taking what they've shared seriously enough to reflect it back accurately and specifically. This is more than empathy in the therapeutic sense; it is the practice of being genuinely known, which Welch connects to the biblical reality of being known by God himself.",
+        },
+        {
+          heading: "Ch. 9 — Stuck",
+          summary: "Welch addresses those seasons when care feels stuck — when nothing seems to be helping, when a person isn't changing, or when a helper feels ineffective and discouraged. He reframes these seasons theologically: they are occasions for greater dependence on God, not evidence of personal failure, and they are normal features of serious, sustained care rather than signs that something has gone wrong.",
+        },
+      ],
+      reflection_prompts: [
+        "Welch says not knowing what to say is normal — and that presence often matters more than words. How does this connect to or contrast with Yalom's ideas about therapeutic technique?",
+        "Yalom's therapist uses their own emotional reactions as data. Welch's helper brings God's word as data. What's similar, and what's fundamentally different?",
+      ],
+    },
+  },
+  4: {
+    yalom: {
+      chapters: "Chapters 21–30",
+      themes: [
+        {
+          heading: "The Existential Concerns: Death (chs. 21–24)",
+          summary: "Yalom introduces what he calls the four 'ultimate concerns' of human existence — death, freedom, isolation, and meaninglessness — as the deepest sources of human anxiety that therapy must eventually address. Death awareness occupies chapters 21–24: Yalom argues that acknowledging our mortality — really sitting with it, not pushing it away — is paradoxically life-giving, clarifying what actually matters and what doesn't. He draws on philosophers (Heidegger, Sartre) and on his own experiences with dying patients.",
+        },
+        {
+          heading: "Freedom and Responsibility (chs. 25–27)",
+          summary: "Yalom's second ultimate concern is freedom — but freedom here means radical responsibility for the choices that constitute our lives, which most people find terrifying rather than liberating. People avoid this by blaming circumstances, parents, biology, or fate for who they've become. Yalom argues that real therapeutic movement requires facing this responsibility: you are the author of your own life, and you can choose differently.",
+        },
+        {
+          heading: "Isolation and Connection (chs. 28–30)",
+          summary: "Yalom's third ultimate concern is existential isolation — the irreducible aloneness of being a distinct, bounded self, which no human relationship can fully overcome. He distinguishes this from ordinary loneliness (being without people) and argues it goes deeper: even in the most intimate relationship, we remain ultimately separate beings. The therapeutic relationship, at its best, creates genuine encounter across this gulf without pretending to erase it.",
+        },
+      ],
+      scripture_contrast: "Yalom's 'four ultimate concerns' framework identifies something real: humans do face death, freedom, isolation, and meaninglessness as sources of profound anxiety. Scripture addresses all four — but with radically different answers. Death is real but not final (1 Corinthians 15); freedom is real but is freedom-for-love, not freedom-as-self-authorship (Galatians 5:13); isolation is addressed not just by human encounter but by union with Christ and membership in his body (John 17:20–23); meaning is not self-created but given (Ecclesiastes, Colossians 1:16). Yalom's framework is honest about the darkness; Scripture offers a different light than Yalom expects.",
+      reflection_prompts: [
+        "Yalom argues that confronting our mortality honestly makes us more alive. Where does Scripture agree — and where does it reframe what 'confronting death' means for a believer?",
+        "Yalom's 'freedom' means radical self-authorship. Scripture's freedom is freedom from sin for love of God and neighbor. Where do these two visions of freedom produce different lives in practice?",
+        "Yalom sees existential isolation as irreducible — the gulf between selves cannot be fully bridged. Does Scripture agree, disagree, or reframe this?",
+      ],
+    },
+    welch: {
+      book: "Side by Side",
+      chapters: "Chapters 10–12",
+      themes: [
+        {
+          heading: "Ch. 10 — Know and Be Known",
+          summary: "Welch returns to the theme of mutual knowing, arguing that care which only moves in one direction — helper to helpee — misses something essential. Real relationship involves both parties being known. He explores what it means to be genuinely transparent with someone you're trying to help, and cautions against the professional distance that can masquerade as humility.",
+        },
+        {
+          heading: "Ch. 11 — What to Say When Someone Is Struggling",
+          summary: "Welch offers practical, specific guidance on entering someone's suffering with words that help rather than words that inadvertently dismiss. He emphasizes specificity (generic comfort is less comforting than people think), timeliness (there's a moment for certain words and a moment to stay silent), and personal honesty (sharing our own experience of need can be more helpful than maintaining an expert posture).",
+        },
+        {
+          heading: "Ch. 12 — The Long Road",
+          summary: "Welch addresses the particular challenge of sustained care over time — when someone's struggle doesn't resolve quickly, when the same patterns recur, or when a relationship must absorb ongoing difficulty without resolution. He reframes perseverance not as gritting through but as a form of love rooted in how God himself perseveres with us — slowly, patiently, without abandoning.",
+        },
+      ],
+      reflection_prompts: [
+        "Yalom's 'existential isolation' and Welch's chapter on being known and knowing are both circling the same reality. Where do they arrive at different conclusions?",
+        "Welch argues for the long road — sustained care over time. How does that connect to Yalom's own observation that brief, technique-focused therapy often leaves the deepest concerns untouched?",
+      ],
+    },
+  },
+  5: {
+    yalom: {
+      chapters: "Chapters 31–40",
+      themes: [
+        {
+          heading: "Meaninglessness — The Fourth Ultimate Concern (chs. 31–33)",
+          summary: "Yalom addresses his fourth ultimate concern: meaninglessness. Unlike death, freedom, and isolation, meaninglessness has no inherent positive counterpart — it is a sheer absence. Yalom's answer is essentially existentialist: meaning cannot be discovered, it must be created through engagement, commitment, and self-chosen projects. He argues that the therapist models this by being fully engaged in the therapeutic work itself as a meaningful enterprise.",
+        },
+        {
+          heading: "Technique vs. Relationship (chs. 34–37)",
+          summary: "Yalom revisits and deepens his central argument: that specific techniques in therapy are far less important than the quality of the relationship. He cites research showing that therapeutic outcomes are far more correlated with 'common factors' (the quality of the alliance, the therapist's empathy, the client's sense of being understood) than with any specific theoretical approach or technique.",
+        },
+        {
+          heading: "The Therapist's Own Therapy (chs. 38–40)",
+          summary: "Yalom argues strongly that therapists must themselves undergo therapy — not as professional certification, but as genuine personal work. A therapist who has not faced their own fears, blind spots, and unresolved conflicts will inevitably import them into the therapeutic relationship. Self-knowledge is not optional; it is an ethical obligation to clients.",
+        },
+      ],
+      scripture_contrast: "Yalom's answer to meaninglessness — create your own meaning through engagement and commitment — is honest about the problem but insufficient to the solution. Ecclesiastes covers the same terrain: 'vanity of vanities, all is vanity' under the sun. But Scripture's answer is not self-created meaning; it is given meaning rooted in a Creator who has purposes that outlast any individual life (Colossians 1:16, Ephesians 1:9–10). Yalom's call for therapist self-examination has real resonance with James 5:16 and Matthew 7:3–5 — you cannot help others with what you have not faced in yourself. But Scripture grounds this differently: we examine ourselves before God, not before a mirror.",
+      reflection_prompts: [
+        "Yalom says meaning must be created; Scripture says it is given. What difference does that make when sitting with someone who feels that their life has no purpose?",
+        "Yalom argues that relationship quality matters more than technique. How does that connect to the distinction between content and process that Welch has been teaching?",
+        "Yalom says therapists must do their own personal work. Where does Scripture say something analogous — and who or what does that work happen before?",
+      ],
+    },
+    welch: {
+      book: "Side by Side",
+      chapters: "Chapters 13–15",
+      themes: [
+        {
+          heading: "Ch. 13 — When You Don't Like the Person",
+          summary: "Welch addresses the uncomfortable reality that we sometimes find certain people difficult to care for — not because they have done something specifically wrong to us, but because their personality, patterns, or demands are genuinely hard to be around. He refuses to dismiss this with easy exhortations to 'just love them anyway,' and instead explores what it looks like to genuinely pursue someone you don't naturally like, grounded in how God pursues us even when we are not attractive to him.",
+        },
+        {
+          heading: "Ch. 14 — Spiritual Battle",
+          summary: "Welch introduces the reality of spiritual warfare as a genuine dimension of care — not as an explanation for every difficulty, but as a real feature of the landscape. He draws on Ephesians 6 and argues that caring for people is not merely a human enterprise: there is an enemy who lies, accuses, and discourages, and wise care includes praying against his activity as well as addressing the horizontal dimensions of someone's struggle.",
+        },
+        {
+          heading: "Ch. 15 — Moving Toward Someone Who Is Moving Away",
+          summary: "Welch addresses the challenge of pursuing someone who is withdrawing, declining help, or actively resistant. He explores the difference between persistent, loving pursuit (following God's own pattern with his people) and pressure that ultimately serves the helper's own need to fix or control. The key question is not 'how do I get through to them?' but 'how do I love them well regardless of outcome?'",
+        },
+      ],
+      reflection_prompts: [
+        "Yalom's chapters on meaninglessness are essentially optimistic: engagement creates meaning. Welch's chapter on spiritual battle introduces an adversary. How do these two pictures of what makes care hard relate to each other?",
+        "Welch's chapter on pursuing someone who is moving away raises the question of outcomes. Yalom is very focused on what works. Where do they diverge on what it means for care to 'succeed'?",
+      ],
+    },
+  },
+  6: {
+    yalom: {
+      chapters: "Chapters 41–50",
+      themes: [
+        {
+          heading: "Working Through Resistance (chs. 41–44)",
+          summary: "Yalom addresses the various forms resistance takes in therapy — avoiding difficult topics, arriving late, changing the subject, idealizing the therapist — and argues that resistance is not an obstacle to therapy but actually its material: these patterns reveal exactly the relational and self-protective habits that cause the client's life problems. Working with resistance, rather than around it, is the therapeutic work.",
+        },
+        {
+          heading: "Therapist Errors and Repair (chs. 45–47)",
+          summary: "Yalom takes an unusually candid approach to therapist mistakes — arguing that errors are inevitable, and that how a therapist responds to their own mistakes can itself be deeply therapeutic. A therapist who acknowledges an error, explores its impact, and genuinely repairs the rupture models exactly the kind of honest accountability most clients have never experienced in their relationships.",
+        },
+        {
+          heading: "The Ending of Therapy (chs. 48–50)",
+          summary: "Yalom argues that the way therapy ends matters as much as anything else. Endings inevitably evoke existential themes — death, loss, the passage of time, the limits of relationship — and a well-handled ending can itself become significant therapeutic work. He also reflects on what therapists take from their work with clients, arguing that growth runs in both directions.",
+        },
+      ],
+      scripture_contrast: "Yalom's approach to resistance has genuine insight: our self-protective patterns are often most visible precisely when we're trying hardest to avoid being known. Scripture sees this same dynamic in the human heart before God — we cover up, blame others, and avoid the light (Genesis 3, John 3:19–20). The difference is the ultimate source of healing: Yalom's therapist is a skilled human guide; Scripture points to the Spirit of God who knows what is hidden and works from the inside (Psalm 139:23–24, Hebrews 4:12–13). Yalom's honest acknowledgment of therapist errors mirrors something deeply Christian — the confessing community of James 5 — but without the relational structure (the body of Christ) or the ultimate source of forgiveness.",
+      reflection_prompts: [
+        "Yalom argues that how a therapist handles their own mistakes can be therapeutic. Where does that intersect with what Welch has taught about humility and self-correction in care?",
+        "Yalom sees the ending of therapy as an opportunity to work with existential themes of loss and death. Does Scripture frame endings differently — and how might that shape how you'd close a caring relationship?",
+        "Yalom says resistance is the material of therapy, not an obstacle to it. Where do you see that principle at work in the Psalms or in Jesus' own encounters with resistant people?",
+      ],
+    },
+    welch: {
+      book: "Side by Side",
+      chapters: "Chapters 16–conclusion",
+      themes: [
+        {
+          heading: "Ch. 16 — What If They Confess Sin to You?",
+          summary: "Welch addresses what to do when someone entrusts you with a genuine confession — not asking for advice, but simply telling you something they've done wrong. He argues that the response matters enormously: rushing to reassure, moralizing, or immediately offering solutions all fail to receive the gift of honest confession well. The right response leads the person further toward Christ and his forgiveness, not toward human management of guilt.",
+        },
+        {
+          heading: "Conclusion — The Community That Cares",
+          summary: "Welch closes by pulling the whole book back to its corporate vision: the goal is not to produce skilled individual caregivers, but to cultivate communities where mutual care is woven into the fabric of ordinary life. He argues that a church or community where people genuinely know and are known by each other, where asking for help is normal and giving it is expected, is itself a powerful testimony to the gospel and a context for genuine transformation.",
+        },
+      ],
+      reflection_prompts: [
+        "Welch's conclusion is communal — the goal is a caring community, not just skilled individuals. Yalom's model is inherently dyadic (one therapist, one client). What does each miss, and what does each capture well?",
+        "How do Welch's final chapters on confession and community relate to the course's ongoing theme of 'restoring counseling to the church'?",
+      ],
+    },
+  },
+  7: {
+    yalom: {
+      chapters: "Chapters 51–60",
+      themes: [
+        {
+          heading: "The Role of Love in Therapy (chs. 51–54)",
+          summary: "Yalom makes the striking argument that genuine care for the client — not technique, not theory, but something close to love — is the therapist's most important quality and most powerful therapeutic tool. He draws on diverse sources (Socrates, Schopenhauer, Buddhist philosophy) to make the case that the will to truly understand and care for another person, even when that person is difficult, is itself healing. He is careful to distinguish this from romantic love and to insist on appropriate professional boundaries while making this claim.",
+        },
+        {
+          heading: "Dealing with Difficult Patients (chs. 55–57)",
+          summary: "Yalom addresses specific types of clients that therapists typically find most challenging — those who are narcissistic, manipulative, deeply passive, or who seem to resist help at every turn. He argues against labeling clients with diagnoses as a way of managing the therapist's own frustration, and insists that curiosity — genuine interest in what underlies these patterns — is the only therapeutic posture that actually helps.",
+        },
+        {
+          heading: "Therapist Self-Care and Renewal (chs. 58–60)",
+          summary: "Yalom addresses the emotional cost of therapeutic work — the accumulating weight of bearing others' pain, maintaining presence through session after session of intense emotional content, and avoiding 'burnout' not through detachment but through genuine renewal. He advocates for the therapist's own ongoing growth, friendships, and creative work as the antidote to the occupational hazard of vicarious exhaustion.",
+        },
+      ],
+      scripture_contrast: "Yalom's argument that love — genuine care, not technique — is the therapist's most powerful tool resonates deeply with 1 Corinthians 13:1–3: without love, even impressive gifts and knowledge profit nothing. But Yalom's 'love' is a human quality to be cultivated through self-development and therapeutic training. Scripture's agape is a gift received from God and then extended to others — we love because he first loved us (1 John 4:19). The source matters: Yalom's therapist draws from human wells; the Christian helper draws from an inexhaustible spring (John 4:14). Yalom's call for therapist self-care has genuine wisdom — even Jesus withdrew to pray and rest — but Scripture locates renewal in communion with God, not primarily in creative projects or friendships.",
+      reflection_prompts: [
+        "Yalom says love — not technique — is the therapist's most powerful tool. Where does that resonate with what this course has been teaching, and where does it need the vertical dimension Scripture adds?",
+        "Yalom is deeply concerned about therapist renewal and avoiding burnout. Where does Scripture address this same concern, and what does it offer that Yalom's framework doesn't?",
+        "Yalom advocates curiosity about difficult clients rather than diagnostic labeling. How does that connect to the skill of 'following the person' and 'slowing down' that Welch has emphasized?",
+      ],
+    },
+    welch: {
+      book: "Caring for One Another",
+      chapters: "Preface–Lesson 5",
+      themes: [
+        {
+          heading: "Preface & Introduction — Care as Discipleship",
+          summary: "Welch frames the whole book as an extension of discipleship — caring for one another is not a specialized skill for trained helpers but a fundamental feature of what it means to follow Jesus together. The 'one another' commands of the New Testament are not optional add-ons for gifted people; they are the basic description of what life in the body of Christ looks like.",
+        },
+        {
+          heading: "Lessons 1–2 — Knowing and Being Known",
+          summary: "The opening lessons focus on the foundational practice of genuinely knowing another person — their life, their story, their sorrows and joys — and being willing to be known in return. Welch draws on Psalm 139 and the Good Shepherd image to argue that being truly known (by God, and mediately through each other) is both a deep human need and a gospel gift.",
+        },
+        {
+          heading: "Lessons 3–5 — Speaking and Listening",
+          summary: "These lessons address the specific skills of speaking wisely and listening well in caring relationships. Welch gives attention to both the content (what we say) and the manner (how we say it), drawing consistently on the Proverbs' picture of the wise person as someone whose words build up rather than tear down. He is especially attentive to the danger of words spoken hastily, defensively, or without genuine attention to the other person.",
+        },
+      ],
+      reflection_prompts: [
+        "Yalom argues that love is the therapist's most powerful tool. Welch grounds 'caring for one another' in the New Testament's community commands. What is similar, and what is the theological difference?",
+        "Welch's Caring for One Another presents care as a community practice, not just an individual skill. How does this change the unit of analysis — from the skilled helper to the caring church?",
+      ],
+    },
+  },
+  8: {
+    yalom: {
+      chapters: "Chapters 61–70",
+      themes: [
+        {
+          heading: "Working with Shame (chs. 61–63)",
+          summary: "Yalom addresses shame as one of the most difficult emotions to work with therapeutically — partly because it is so often concealed (unlike guilt, which refers to a specific action, shame involves the whole self as defective), and partly because the therapeutic relationship itself can activate it. He argues that the therapist's own non-shaming response to client disclosure is itself therapeutic: being fully known without being rejected is a corrective experience many shame-saturated clients have never had.",
+        },
+        {
+          heading: "The Question of Diagnosis (chs. 64–66)",
+          summary: "Yalom is deeply skeptical of psychiatric diagnosis as an organizing framework for therapy, arguing that diagnostic labels encourage therapists to see the label rather than the person, to treat the category rather than the individual, and to miss the unique existential situation of each human being. He argues for a radically idiographic (individual-centered) approach that resists categorization.",
+        },
+        {
+          heading: "What Therapists Take From Clients (chs. 67–70)",
+          summary: "Yalom reflects candidly on how therapists are changed by their work with clients — the growth in wisdom, empathy, and self-understanding that comes from sustained exposure to human suffering and resilience. He argues for a reciprocal rather than one-directional model of the therapeutic relationship: clients shape their therapists as much as therapists shape their clients, and acknowledging this honestly is part of the therapist's integrity.",
+        },
+      ],
+      scripture_contrast: "Yalom's treatment of shame is clinically astute and has genuine resonance with Scripture's deep concern with shame and its healing. The experience of being fully known and not rejected — which Yalom describes as therapeutically central — is precisely what Scripture promises in the gospel: God knows us completely (Psalm 139) and, in Christ, covers our shame with his righteousness (Isaiah 61:10, Romans 10:11). Yalom's corrective experience of 'being known without being condemned' is a secular echo of what justification offers. But only Christ can bear the actual weight of what causes shame, not merely respond non-judgmentally to its expression. Yalom's skepticism about diagnostic labels also resonates with the course's teaching: Scripture describes people richly as saints, sufferers, and sinners — not as diagnostic categories.",
+      reflection_prompts: [
+        "Yalom says being fully known without being rejected is therapeutically powerful. How does that resonate with the gospel — and what does Christ offer that a therapist, however skilled, cannot?",
+        "Yalom is skeptical of psychiatric diagnosis because it misses the unique individual. How does that compare to the approach this course has taken to diagnostic categories in the Know the Person section?",
+        "Yalom says therapists are shaped by their clients — the relationship is reciprocal. Is there a Christian framework for understanding this that goes beyond Yalom's secular one?",
+      ],
+    },
+    welch: {
+      book: "Caring for One Another",
+      chapters: "Lesson 6–notes",
+      themes: [
+        {
+          heading: "Lesson 6 — When Someone Is Suffering",
+          summary: "Welch addresses the particular challenges of caring for someone in genuine, sustained suffering — whether grief, chronic illness, or circumstances that won't change. He argues that the helper's task shifts in these seasons: less problem-solving, more accompaniment; less speaking, more sustained presence; less trying to explain God's purposes, more pointing to God's character and company in the suffering.",
+        },
+        {
+          heading: "Final Notes — The Gospel as the Foundation of All Care",
+          summary: "Welch closes by grounding the whole project of mutual care in the gospel: we care for one another because Christ first cared for us at infinite cost (2 Corinthians 5:14–15). The gospel is not merely the starting point of the Christian life — it is the ongoing, daily motivation for costly, patient, sacrificial care of others. Care that loses its gospel roots becomes either moralistic (obligation-driven) or therapeutic (outcome-driven); care rooted in the gospel flows from gratitude and love.",
+        },
+      ],
+      reflection_prompts: [
+        "Welch grounds all care in the gospel — we care because Christ cared for us. Yalom grounds it in love as a human quality. What difference does the source of motivation make over time, especially in hard cases?",
+        "Yalom's chapter on shame and Welch's chapter on suffering both address being present with someone in pain. What do they have in common, and where does Christ-centered care go further?",
+      ],
+    },
+  },
+  9: {
+    yalom: {
+      chapters: "Chapters 71–85",
+      themes: [
+        {
+          heading: "Advanced Therapeutic Techniques (chs. 71–74)",
+          summary: "Yalom offers reflections on more advanced aspects of therapeutic practice — including working with particularly complex cases, the role of humor as a genuine therapeutic tool (not a deflection), and the therapist's capacity to tolerate uncertainty without filling it prematurely with interpretations or advice. He argues that the ability to sit with not-knowing is one of the hardest and most important skills a therapist can develop.",
+        },
+        {
+          heading: "The Meaning of the Therapist's Work (chs. 75–79)",
+          summary: "Yalom reflects on what makes the therapeutic vocation meaningful — the privilege of intimacy with another human being's inner life, the satisfaction of witnessing growth, and the particular joy of the 'awakening' moment when a client sees something about themselves for the first time. He is candid that the work is also draining, isolating, and morally serious, and that its meaning must be continuously renewed rather than taken for granted.",
+        },
+        {
+          heading: "Legacy and the Therapist's Own Death (chs. 80–85)",
+          summary: "In his final chapters, Yalom returns to the theme of death — this time as it applies to the therapist's own mortality. He reflects on what it means to do this work knowing that both therapist and client will die, that the specific memories and breakthroughs of each session will eventually be lost, and yet that the work still matters. He argues for a 'rippling' model of legacy: the effects of genuine care flow outward through clients and their relationships long after the therapeutic encounter itself is over.",
+        },
+      ],
+      scripture_contrast: "Yalom's final meditations on death, legacy, and the meaning of a life's work are some of his most honest and searching. He is genuinely grappling with questions that Scripture takes seriously: what outlasts a human life? What is worth doing in the face of death? His answer is essentially relational rippling — effects flowing outward — and while this is not wrong, it is incomplete. Scripture's answer is resurrection: not rippling effects, but actual continuity of person and work beyond death (1 Corinthians 15:58). The labor is not in vain — not because its effects ripple, but because the One who gives it meaning is himself undying. Yalom's work ends in honest uncertainty; Scripture ends in a different kind of hope.",
+      reflection_prompts: [
+        "Yalom's final chapters are his most honest: the work matters, but therapist and client will die and be forgotten. How does the resurrection (1 Corinthians 15:58) reframe what makes care worth doing?",
+        "Yalom argues for sitting with uncertainty and not-knowing. How does that connect to the posture of humility this course has emphasized throughout?",
+        "Having read the whole of Yalom this semester: what has he helped you see about human experience that you'll carry into your care for others? And where has Scripture consistently shown a different, fuller answer?",
+      ],
+    },
+    welch: {
+      book: "Side by Side / Caring for One Another",
+      chapters: "Review of the whole",
+      themes: [
+        {
+          heading: "The Whole Vision: Mutual Care as the Church's Ordinary Life",
+          summary: "Looking back across both of Welch's books, his controlling vision is a church where mutual care — knowing and being known, speaking and listening, accompanying one another in suffering and sin — is simply the ordinary texture of daily life, not a specialist ministry or a crisis intervention. The goal is not a congregation of skilled helpers but a community of beloved friends who carry each other's burdens as a natural expression of having first received the care of Christ.",
+        },
+      ],
+      reflection_prompts: [
+        "As you reach the end of the reading for this course, what has Welch's vision of mutual care added to or changed about how you think about your own community or church?",
+        "The course has held Yalom and Scripture in dialogue all semester. What is the single most important thing you want to carry from that conversation into your actual relationships?",
+      ],
+    },
+  },
 };
 
 
