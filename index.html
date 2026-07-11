@@ -676,7 +676,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 2",t:30,due:"Jul 4",pts:10,draft:true},
-    {n:"Extended Conversation, Week 2 Prompt",t:30,due:"Jul 4",draft:true},
+    {n:"Extended Conversation, Week 2 Prompt",t:30,due:"Jul 4",draft:true,ecpWeek:2},
     {n:"Ephesians Reflection & \"Personal\" Paper",t:90,due:"Jul 4",pts:100,draft:true},
     {n:"Small Group 1 (Prompts & Questions)",t:20,due:"Jul 4",draft:true},
   ]},
@@ -699,7 +699,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 3",t:30,due:"Jul 11",pts:10,draft:true},
-    {n:"Extended Conversation, Week 3 Prompt",t:30,due:"Jul 11",draft:true},
+    {n:"Extended Conversation, Week 3 Prompt",t:30,due:"Jul 11",draft:true,ecpWeek:3},
     {n:"Reflection Paper 1",t:90,due:"Jul 11",pts:100,draft:true},
   ]},
 ]},
@@ -716,7 +716,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 4",t:30,due:"Jul 18",pts:10,draft:true},
-    {n:"Extended Conversation, Week 4 Prompt",t:30,due:"Jul 18",draft:true},
+    {n:"Extended Conversation, Week 4 Prompt",t:30,due:"Jul 18",draft:true,ecpWeek:4},
     {n:"Small Group 2 (Prompts & Questions)",t:20,due:"Jul 18",draft:true},
     {n:"Submit Questions for Live Engagement 2 (optional)",t:15,due:"Jul 18"},
   ]},
@@ -738,7 +738,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 5",t:30,draft:true},
-    {n:"Extended Conversation, Week 5 Prompt",t:30,draft:true},
+    {n:"Extended Conversation, Week 5 Prompt",t:30,draft:true,ecpWeek:5},
     {n:"Reflection Paper 2",t:90,pts:100,draft:true},
   ]},
   {label:"Attend",type:"attend",tasks:[
@@ -759,7 +759,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 6",t:30,due:"Aug 1",pts:10,draft:true},
-    {n:"Extended Conversation, Week 6 Prompt",t:30,due:"Aug 1",draft:true},
+    {n:"Extended Conversation, Week 6 Prompt",t:30,due:"Aug 1",draft:true,ecpWeek:6},
     {n:"Small Group 3 (Prompts & Questions)",t:20,due:"Aug 1",draft:true},
   ]},
   {label:"Attend",type:"attend",tasks:[
@@ -780,7 +780,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 7",t:30,due:"Aug 8",pts:10,draft:true},
-    {n:"Extended Conversation, Week 7 Prompt",t:30,due:"Aug 8",draft:true},
+    {n:"Extended Conversation, Week 7 Prompt",t:30,due:"Aug 8",draft:true,ecpWeek:7},
     {n:"Reflection Paper 3",t:90,due:"Aug 8",pts:100,draft:true},
   ]},
 ]},
@@ -796,7 +796,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 8",t:30,due:"Aug 15",pts:10,draft:true},
-    {n:"Extended Conversation, Week 8 Prompt",t:30,due:"Aug 15",draft:true},
+    {n:"Extended Conversation, Week 8 Prompt",t:30,due:"Aug 15",draft:true,ecpWeek:8},
     {n:"Small Group 4 (Prompts & Questions)",t:20,due:"Aug 15",draft:true},
     {n:"Submit Questions for Live Engagement 3 (optional)",t:15,due:"Aug 15"},
   ]},
@@ -816,7 +816,7 @@ let DATA=[
   ]},
   {label:"Assignments",type:"complete",tasks:[
     {n:"Yalom Reading Reflections, Week 9",t:30,due:"Aug 22",pts:10,draft:true},
-    {n:"Extended Conversation, Week 9 Prompt",t:30,due:"Aug 22",draft:true},
+    {n:"Extended Conversation, Week 9 Prompt",t:30,due:"Aug 22",draft:true,ecpWeek:9},
   ]},
   {label:"Attend",type:"attend",tasks:[
     {n:"Live Engagement 3 with OI",t:60,due:"Aug 20 8pm EST"},
@@ -1907,7 +1907,7 @@ function openEcpLog(){
     const draft = getDraftForEcpWeek(wk);
     const hasEntry = draft.text.trim().length > 0;
 
-    html += `<div class="model-q-card" style="--q-color:${hasEntry ? 'var(--green)' : 'var(--muted)'};margin-bottom:14px;">`;
+    html += `<div class="model-q-card" id="model-q-ecp${wk.week}" style="--q-color:${hasEntry ? 'var(--green)' : 'var(--muted)'};margin-bottom:14px;">`;
     html += `<div class="model-q-header" onclick="toggleModelQ('ecp${wk.week}')">`;
     html += `<span class="model-q-num" style="width:32px;height:32px;font-size:12px;">${hasEntry ? '✓' : wk.week}</span>`;
     html += `<span class="model-q-label">Week ${wk.week}${hasEntry ? ' — entry complete' : ' — no entry yet'}</span>`;
@@ -1952,6 +1952,18 @@ function openEcpLog(){
 
 function closeEcpLog(){
   document.getElementById('ecp-log-page').classList.remove('open');
+}
+
+function openEcpLogAtWeek(weekNum){
+  openEcpLog();
+  // Expand the target week card and scroll to it
+  setTimeout(()=>{
+    const card = document.getElementById('model-q-ecp'+weekNum);
+    if(card){
+      card.classList.add('expanded');
+      card.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  }, 100);
 }
 
 async function exportEcpLogToWord(){
@@ -2463,6 +2475,9 @@ function render(){
         if(task.draft){
           const did=tid(w.id,si,ti);
           actions += `<a class="notes-link draft-link" href="#" onclick="event.preventDefault();openDraft('${did}','${task.n.replace(/'/g,"\\'")}')">📝 Draft</a>`;
+        }
+        if(task.ecpWeek){
+          actions += `<a class="notes-link" href="#" onclick="event.preventDefault();openEcpLogAtWeek(${task.ecpWeek})" style="color:var(--green);">📋 Log Entry</a>`;
         }
 
         secHTML+=`<div class="task">
