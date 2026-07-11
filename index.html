@@ -250,6 +250,10 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
   <button class="filter-btn" onclick="openSummary()" style="width:100%;">📑 My Notes &amp; Drafts</button>
 </div>
 
+<div id="ecp-log-btn-wrap" style="display:none;padding:4px 16px 8px;background:var(--surface);border-bottom:1px solid var(--border);">
+  <button class="filter-btn" onclick="openEcpLog()" style="width:100%;background:var(--green);color:#fff;border:none;">📋 ECP Conversation Log</button>
+</div>
+
 <div class="weeks" id="weeks"></div>
 
 <!-- Notes Full Screen Page -->
@@ -301,6 +305,20 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
     <span class="font-size-label" style="font-size:20px;">A</span>
   </div>
   <div class="notes-page-body" id="summary-page-body"></div>
+</div>
+
+<div class="notes-page" id="ecp-log-page">
+  <div class="notes-page-header">
+    <span class="notes-back" onclick="closeEcpLog()">← Back</span>
+    <div class="notes-page-title">ECP Log</div>
+    <span class="font-size-toggle" onclick="toggleFontSizeBar(this)">Aa</span>
+  </div>
+  <div class="font-size-bar" id="font-size-bar-4">
+    <span class="font-size-label">A</span>
+    <input type="range" min="13" max="22" value="14" class="font-size-slider" oninput="setReadingFontSize(this.value)">
+    <span class="font-size-label" style="font-size:20px;">A</span>
+  </div>
+  <div class="notes-page-body" id="ecp-log-body"></div>
 </div>
 
 <div class="notes-page" id="draft-page">
@@ -1854,6 +1872,155 @@ function closeSummary(){
   document.getElementById('summary-page').classList.remove('open');
 }
 
+// ── ECP Conversation Log ─────────────────────────────────────
+function getDraftForEcpWeek(weekData){
+  // Find the task ID for this week's ECP draft by walking DATA
+  for(const w of DATA){
+    for(let si=0; si<w.sections.length; si++){
+      const s = w.sections[si];
+      for(let ti=0; ti<s.tasks.length; ti++){
+        const t = s.tasks[ti];
+        if(t.n === weekData.draftKey){
+          const id = tid(w.id, si, ti);
+          return { text: draftsData[id] || '', taskId: id, weekId: w.id };
+        }
+      }
+    }
+  }
+  return { text: '', taskId: null, weekId: null };
+}
+
+function openEcpLog(){
+  const body = document.getElementById('ecp-log-body');
+  const filledCount = ECP_LOG_WEEKS.filter(w => {
+    const d = getDraftForEcpWeek(w);
+    return d.text.trim().length > 0;
+  }).length;
+
+  let html = '';
+  html += `<div class="nb-item" style="margin-bottom:6px;">Extended Conversation Partner Log — ${filledCount} of 8 weeks completed.</div>`;
+  html += `<div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">`;
+  html += `<button class="filter-btn" style="background:var(--green);color:#fff;border:none;flex:1;" onclick="exportEcpLogToWord()">⬇️ Export Full Log to Word</button>`;
+  html += `</div>`;
+
+  ECP_LOG_WEEKS.forEach(wk => {
+    const draft = getDraftForEcpWeek(wk);
+    const hasEntry = draft.text.trim().length > 0;
+
+    html += `<div class="model-q-card" style="--q-color:${hasEntry ? 'var(--green)' : 'var(--muted)'};margin-bottom:14px;">`;
+    html += `<div class="model-q-header" onclick="toggleModelQ('ecp${wk.week}')">`;
+    html += `<span class="model-q-num" style="width:32px;height:32px;font-size:12px;">${hasEntry ? '✓' : wk.week}</span>`;
+    html += `<span class="model-q-label">Week ${wk.week}${hasEntry ? ' — entry complete' : ' — no entry yet'}</span>`;
+    html += `<span class="model-q-chevron">▶</span>`;
+    html += `</div>`;
+    html += `<div class="model-q-body">`;
+
+    if(wk.skills.length){
+      html += `<div class="prompt-section-heading" style="text-transform:none;letter-spacing:0;font-size:12px;margin-bottom:4px;">Skills to Practice</div>`;
+      html += `<ul class="prompt-questions" style="margin-bottom:10px;">`;
+      wk.skills.forEach(s => { html += `<li style="font-size:12.5px;">${escHtml(s)}</li>`; });
+      html += `</ul>`;
+    }
+
+    html += `<div class="prompt-section-heading" style="text-transform:none;letter-spacing:0;font-size:12px;margin-bottom:4px;">Conversation Prompts</div>`;
+    html += `<ul class="prompt-questions" style="margin-bottom:10px;">`;
+    wk.prompts.forEach(p => { html += `<li style="font-size:12.5px;">${escHtml(p)}</li>`; });
+    html += `</ul>`;
+
+    html += `<div class="prompt-section-heading" style="text-transform:none;letter-spacing:0;font-size:12px;margin-bottom:4px;">Reflection Questions</div>`;
+    html += `<ul class="prompt-questions" style="margin-bottom:12px;">`;
+    wk.reflection.forEach(r => { html += `<li style="font-size:12.5px;">${escHtml(r)}</li>`; });
+    html += `</ul>`;
+
+    html += `<div class="prompt-section-heading" style="text-transform:none;letter-spacing:0;font-size:12px;margin-bottom:6px;">My Log Entry (3–5 sentences)</div>`;
+    if(hasEntry){
+      html += `<div class="nb-item" style="border-left:3px solid var(--green);padding-left:10px;white-space:pre-wrap;font-size:var(--reading-font-size,14px);background:var(--bg);border-radius:6px;padding:10px 12px;">${escHtml(draft.text.trim())}</div>`;
+    } else {
+      html += `<div class="nb-placeholder" style="margin-bottom:6px;">No entry yet for this week.</div>`;
+    }
+    if(draft.taskId){
+      html += `<button class="filter-btn" style="margin-top:8px;font-size:12px;" onclick="closeEcpLog();openDraft('${draft.taskId}','${escHtml(wk.draftKey)}')">✏️ Edit Week ${wk.week} Entry</button>`;
+    }
+
+    html += `</div></div>`;
+  });
+
+  body.innerHTML = html;
+  document.getElementById('ecp-log-page').classList.add('open');
+  window.scrollTo(0,0);
+}
+
+function closeEcpLog(){
+  document.getElementById('ecp-log-page').classList.remove('open');
+}
+
+async function exportEcpLogToWord(){
+  const ready = await ensureDocxLoaded();
+  if(!ready){
+    alert('The Word export library failed to load even after retrying. Check your internet connection and try again in a moment.');
+    return;
+  }
+  try{
+    const { Document, Packer, Paragraph, TextRun, HeadingLevel } = docx;
+    const paragraphs = [
+      new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun('Extended Conversation Partner Log')] }),
+      new Paragraph({ children: [new TextRun('Helping Relationships — CCEF')] }),
+      new Paragraph({ children: [new TextRun('')] }),
+    ];
+
+    ECP_LOG_WEEKS.forEach(wk => {
+      paragraphs.push(new Paragraph({ heading: HeadingLevel.HEADING_2, children: [new TextRun(`Week ${wk.week}`)] }));
+
+      if(wk.skills.length){
+        paragraphs.push(new Paragraph({ children: [new TextRun({ text: 'Skills to Practice', bold: true })] }));
+        wk.skills.forEach(s => {
+          paragraphs.push(new Paragraph({ children: [new TextRun(`• ${s}`)], indent: { left: 360 } }));
+        });
+        paragraphs.push(new Paragraph({ children: [new TextRun('')] }));
+      }
+
+      const draft = getDraftForEcpWeek(wk);
+      paragraphs.push(new Paragraph({ children: [new TextRun({ text: 'Log Entry:', bold: true })] }));
+      if(draft.text.trim()){
+        draft.text.trim().split('\n').forEach(line => {
+          paragraphs.push(new Paragraph({ children: [new TextRun(line)] }));
+        });
+      } else {
+        paragraphs.push(new Paragraph({ children: [new TextRun('[No entry yet]')], run: { color: '888888' } }));
+      }
+      paragraphs.push(new Paragraph({ children: [new TextRun('')] }));
+    });
+
+    const doc = new Document({
+      styles: {
+        default: { document: { run: { font: "Calibri", size: 24 } } },
+        paragraphStyles: [
+          { id: "Heading1", name: "Heading 1", basedOn: "Normal", next: "Normal", quickFormat: true,
+            run: { size: 32, bold: true, font: "Calibri" }, paragraph: { spacing: { before: 240, after: 240 } } },
+          { id: "Heading2", name: "Heading 2", basedOn: "Normal", next: "Normal", quickFormat: true,
+            run: { size: 26, bold: true, font: "Calibri", color: "1D9E75" }, paragraph: { spacing: { before: 280, after: 160 } } },
+        ]
+      },
+      sections: [{
+        properties: { page: { size: { width: 12240, height: 15840 }, margin: { top: 1440, right: 1440, bottom: 1440, left: 1440 } } },
+        children: paragraphs
+      }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ECP_Conversation_Log.docx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch(e){
+    alert('Something went wrong creating the Word file: ' + e.message);
+  }
+}
+
 async function exportSummaryToWord(){
   const ready = await ensureDocxLoaded();
   if(!ready){
@@ -2067,6 +2234,25 @@ function renderAssignmentPrompt(taskName){
 }
 
 function renderReadingGuide(taskName){
+  // Check for per-question paper guide first
+  if(typeof HR_PAPER_GUIDES !== 'undefined' && HR_PAPER_GUIDES[taskName]){
+    const guide = HR_PAPER_GUIDES[taskName];
+    let html = `<div style="margin-top:16px;border-top:2px solid var(--green-light);padding-top:14px;">`;
+    html += `<div class="prompt-section-heading" style="font-size:13px;margin-bottom:8px;">📚 ${escHtml(guide.title)}</div>`;
+    html += `<div class="nb-item" style="border-left:none;padding-left:0;margin-bottom:14px;font-size:var(--reading-font-size,14px);">${escHtml(guide.intro)}</div>`;
+    guide.questions.forEach((qg, qi)=>{
+      html += `<div style="background:var(--surface);border-radius:8px;padding:12px 14px;margin-bottom:12px;border-left:3px solid var(--green);">`;
+      html += `<div style="font-weight:700;font-size:13px;color:var(--green-dark);margin-bottom:8px;">Q${qi+1}: ${escHtml(qg.q)}</div>`;
+      qg.refs.forEach(ref=>{
+        html += `<div style="font-weight:600;font-size:12.5px;margin-top:8px;color:var(--text);">📖 ${escHtml(ref.source)}</div>`;
+        html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);margin-bottom:4px;">${escHtml(ref.note)}</div>`;
+      });
+      html += `</div>`;
+    });
+    html += `</div>`;
+    return html;
+  }
+
   if(typeof HR_READING_GUIDES === 'undefined') return '';
 
   // Determine week number from task name
@@ -8258,6 +8444,240 @@ const HR_READING_GUIDES = {
 };
 
 
+
+// ── Reflection Paper Question Guides ────────────────────────
+const HR_PAPER_GUIDES = {
+  "Reflection Paper 1": {
+    title: "Small Talk — Week 3 Source References",
+    intro: "This paper draws on Lectures 11–15 (Skills 1–4), Side by Side chs. 7–9, and Yalom chs. 11–20. Each question below is directly connected to content from these sources. Use the references to ground your personal reflection in the week's material.",
+    questions: [
+      {
+        q: "Do you engage in small talk? Why or why not?",
+        refs: [
+          {
+            source: "Lecture 11 — Skill 1: Accumulate Wisdom",
+            note: "Welch frames 'accumulating wisdom' as observing what actually works in real conversations, including small talk. His key observation is that people hide their deepest things until they find someone trustworthy and humble — and small talk is often the entry point. He also notes that the best conversations tend to happen unhurried, undistracted, and over a meal. Ask yourself: do you naturally create these conditions? Do you find small talk tedious, or do you see it as an early trust-building moment?"
+          },
+          {
+            source: "Lecture 12 — Skill 2: Move Conversations",
+            note: "Welch contrasts 'terminally stuck' small talk (which neither grows nor shrinks but is slowly dying) with small talk that moves toward real life. The dying plant image is the key: if you never engage in small talk at all, you have no 'plant' to water. If you engage but never move it anywhere, it quietly dies. Where do you currently land on this spectrum?"
+          },
+          {
+            source: "Side by Side, ch. 7 — When You Don't Know What to Say",
+            note: "Welch addresses the fear of not knowing what to say — which often underlies avoidance of small talk. The chapter normalizes this and argues that presence (showing up, staying) matters more than finding the perfect words. If you avoid small talk, consider whether it's really a fear of the next step — not knowing how to move from surface to something real."
+          },
+        ],
+      },
+      {
+        q: "How have you moved (nudged) small talk to even more important places? Give an example. Be specific.",
+        refs: [
+          {
+            source: "Lecture 12 — Skill 2: Move Conversations",
+            note: "This question maps directly to Skill 2. Welch's practical moves: asking what someone enjoys (not just what they do), noticing and naming something specific you admire, asking 'what was the best and worst thing in your week?', and following up on a repeated detail — treating repetition as a signal of importance. Which of these have you tried? Did it work? Being specific here is the assignment's explicit ask — name one real conversation."
+          },
+          {
+            source: "Lecture 11 — Skill 1: Accumulate Wisdom (the 'collapse your triangles' principle)",
+            note: "One concrete way small talk gets moved deeper: rather than talking about someone, invite them into the conversation directly. This is the 'collapse your triangles' principle from Lecture 11 — a practical, specific way a conversation gets moved from surface-level to real engagement."
+          },
+          {
+            source: "Lecture 13 — Skill 3: Self-Disclosure",
+            note: "Self-disclosure is another specific way small talk moves deeper — Welch's story of mentioning his panic attacks almost in passing, and friends immediately stopping to listen, is a concrete model. Did you share something personal that opened a door? That's a nudge worth naming."
+          },
+          {
+            source: "Yalom, chs. 11–20 — The Therapist's Feelings as Data",
+            note: "Yalom's observation that the therapist's own emotional reactions are clinically valuable data (chs. 14–16) applies here: when you nudge a conversation, your own instinct about what's important in what someone just said is itself a signal. Learning to trust and act on that instinct — rather than letting the moment pass — is exactly the 'nudge' this question is asking about."
+          },
+        ],
+      },
+      {
+        q: "How do you feel as you engage in small talk? Does it feel challenging? Do you enjoy it?",
+        refs: [
+          {
+            source: "Lecture 8 — Know the Heart: Emotions as Windows into Desire",
+            note: "This question is asking you to look at your own heart, not just your behavior. Welch taught that emotions are windows into desire — fear is desire at risk, joy is desire satisfied. If small talk feels challenging, ask what's at risk for you (appearing foolish? not knowing what to say? wasting time?). If you enjoy it, ask what desire it satisfies. The course's tools for knowing another person's heart apply equally to knowing your own."
+          },
+          {
+            source: "Lecture 3 — Hindrances: Digital Culture",
+            note: "Welch named digital culture as a specific hindrance to wise conversation — it trains us into modes of engagement (curated, surface-level, factional) that work against humble, attentive listening. Consider whether your emotional reaction to small talk (challenging, draining, anxiety-producing) might partly reflect digital-culture formation rather than your natural wiring."
+          },
+          {
+            source: "Lecture 13 — Skill 3: Self-Disclosure",
+            note: "The 'no-fly zones' concept from Lecture 13 is relevant here: if small talk feels uncomfortable, explore whether there are unspoken topics you instinctively avoid. Noticing these zones in yourself — not just in others — is part of the self-knowledge this paper is calling for."
+          },
+          {
+            source: "Side by Side, ch. 9 — Stuck",
+            note: "Welch addresses seasons when care feels stuck — and care very often gets stuck right at the small talk stage, before it ever moves deeper. If small talk consistently feels like a wall rather than a door, Welch's framing (these seasons call for greater dependence on God, not just better technique) is worth bringing into your reflection."
+          },
+        ],
+      },
+      {
+        q: "In light of this, what is your plan for growing in small talk? One thing. Be specific.",
+        refs: [
+          {
+            source: "Lecture 12 — Skill 2: Move Conversations (the best and worst of your week)",
+            note: "The single most replicable small talk habit from Week 3's lectures: the 'best and worst thing in your week' question. It's specific, it's low-risk enough to ask almost anyone, and it reliably opens conversation from surface to heart. If you don't have a more specific idea, this is the default recommendation."
+          },
+          {
+            source: "Lecture 11 — Skill 1: Accumulate Wisdom",
+            note: "Welch's own practice for growing in conversation: keep an ongoing, growing list of what helps and what hinders — basically, take one small talk observation per week and write it down. Your plan could be as simple as 'I will notice and record one thing that works or doesn't work in a conversation this week.' That's the beginning of accumulating wisdom."
+          },
+          {
+            source: "Lecture 14 — Skill 4: Slow Down / Follow the Person",
+            note: "One of the most common small talk failures is moving too fast — racing through topics without slowing down at the one that actually mattered. A concrete plan: pick one conversation this week and deliberately slow down at the point where you'd normally move on. Stay with it for two more questions than you normally would."
+          },
+          {
+            source: "The Paper Guidelines document",
+            note: "The assignment requires ONE specific thing, not a general resolution. 'I will be more intentional about small talk' is not a plan — it's a sentiment. 'This week, when I meet my neighbor at the mailbox, I will ask what the best thing about their week was, and stay with their answer for at least one follow-up question' is a plan. The more specific you are, the more useful this paper will be to your actual growth."
+          },
+        ],
+      },
+    ],
+  },
+};
+
+// ── ECP Log: Full weekly structure (Weeks 2-9) ───────────────
+const ECP_LOG_WEEKS = [
+  {
+    week: 2,
+    skills: [],
+    prompts: [
+      "How might you pray, with the other person, intentionally at the start of your time together?",
+      "What are the circumstances of their lives? Nudge deeper. Sample categories: family of origin, present family or friends, work, where the person has lived, important people today, interests and pleasures — and why, a summary of themselves in a sentence or image.",
+      "Has anything come out of the conversation that is important to pray? Then pray.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "How might this information become important in upcoming weeks?",
+      "What are you learning about how you personally have 1-on-1 conversations?",
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "How have you seen good in this person? Have you identified one thing that is good?",
+      "Thoughts for next time?",
+    ],
+    draftKey: "Extended Conversation, Week 2 Prompt",
+  },
+  {
+    week: 3,
+    skills: ["Skill 1 – Accumulate Wisdom", "Skill 2 – Move Conversations", "Skill 3 – Self-Disclosure", "Skill 4 – Follow the Person"],
+    prompts: [
+      "How did the person come to Christ (if the person is a believer)?",
+      "What were the pivotal events in their lives? This is a move into the larger story.",
+      "What is most important now? Weightiest, best?",
+      "Try and use self-disclosure wisely in your conversation this week.",
+      "Remember to pray with your ECP at some point during your time together.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "Are you hearing what is important in your conversation? Consider examples of when you did or did not do this.",
+      "Did your use or lack of self-disclosure benefit or disadvantage your relationship?",
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "How have you seen the reflection of Christ? Thoughts for next time?",
+    ],
+    draftKey: "Extended Conversation, Week 3 Prompt",
+  },
+  {
+    week: 4,
+    skills: ["Skill 5 – Consider Your Questions", "Skill 6 – Know the Experience"],
+    prompts: [
+      "Start your time by picking up a theme or topic from the last time you met.",
+      "\"For someone to know you well (like I hope to do), what do you think are the essentials for someone to know about you?\"",
+      "Consider the usefulness of asking questions, and seek to employ the skills on this topic discussed in lecture.",
+      "Remember to pray with your ECP at some point during your time together.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "Reflect on how the skill of considering your questions was or was not helpful. What went well, and what did not?",
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "How have you seen the work of the Spirit? Thoughts for next time?",
+    ],
+    draftKey: "Extended Conversation, Week 4 Prompt",
+  },
+  {
+    week: 5,
+    skills: ["Skill 7 – Connect Daily Life to God", "Skill 8 – Simplify Details", "Skill 9 – Distinguish Content & Process", "Skill 10 – Pause"],
+    prompts: [
+      "Listen for ways you and your conversation partner can connect everyday life to aspects of your relationship with God.",
+      "What are they learning spiritually? Where do they feel spiritually needy or stuck? (An opportunity to pray together.)",
+      "Remember to pray with your ECP at some point during your time together.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "Reflect on how you and your partner connected everyday life to aspects of your/their relationship with God.",
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "What would be a suitable summary of your time together that you could speak to your partner next time?",
+    ],
+    draftKey: "Extended Conversation, Week 5 Prompt",
+  },
+  {
+    week: 6,
+    skills: ["Skill 1 – Accumulate Wisdom", "Skill 2 – Be Personal", "Skill 3 – Everyday Language"],
+    prompts: [
+      "How has a passage of Scripture been good news for your extended conversation partner this week?",
+      "What are some characteristics of the ways Scripture is helpful?",
+      "Remember to pray with your ECP at some point during your time together.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "Reflect on the impact of hearing your partner's personal application of Scripture.",
+      "How were you (or weren't you) able to be personal?",
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "How have you seen good in this person? Thoughts for next time?",
+    ],
+    draftKey: "Extended Conversation, Week 6 Prompt",
+  },
+  {
+    week: 7,
+    skills: ["Skill 4 – Keep in Step with the Spirit", "Skill 5 – Access Scripture Together"],
+    prompts: [
+      "Seek to understand what has been important recently in the person's life.",
+      "Where is the Spirit obviously working and leading?",
+      "Remember to pray with your ECP at some point during your time together.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "Are you seeing the good and enjoying the person?",
+      "How have you seen the reflection of Christ? Thoughts for next time?",
+    ],
+    draftKey: "Extended Conversation, Week 7 Prompt",
+  },
+  {
+    week: 8,
+    skills: ["Skill 6 – Distinguish Scripture and Advice", "Skill 7 – Skills with Sinners"],
+    prompts: [
+      "How does the Spirit speak to your ECP in their own sin? How have other people spoken to them about their own sin?",
+      "How do they hope to grow in Christ? Who do they want to be in 2 years?",
+      "What does growing in Jesus look like for them? How do they come to Christ with their sins?",
+      "What have people said or done that was helpful to their spiritual life?",
+      "What have people said or done, especially during hardships, that was hurtful?",
+      "Remember to pray with your ECP at some point during your time together.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "What have you learned already about how to speak about sin, by way of how the Spirit has spoken to you and how other people have spoken to you?",
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "How have you seen the work of the Spirit? Thoughts for next time?",
+    ],
+    draftKey: "Extended Conversation, Week 8 Prompt",
+  },
+  {
+    week: 9,
+    skills: ["Skill 8 – Skills with Sufferers", "Skill 9 – Retell Stories"],
+    prompts: [
+      "What are they learning spiritually? Where do they feel spiritually needy or stuck? (An opportunity to pray together.)",
+      "What are some key words and images that describe your ECP? Share your reflections with them if you like.",
+      "Remember to pray with your ECP at some point during your time together.",
+      "Remember to ask for one piece of feedback from your time together.",
+    ],
+    reflection: [
+      "What are tendencies that you would like to change in how you care for sufferers?",
+      "Reflect on your progress based on your self-assessment from Week 1.",
+      "What would be a suitable summary of your time together that you could include in your letter to your partner?",
+    ],
+    draftKey: "Extended Conversation, Week 9 Prompt",
+  },
+];
+
+
 // ── Boot ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
   const urlParams = new URLSearchParams(window.location.search);
@@ -8273,8 +8693,10 @@ document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('btn-hr').classList.remove('active');
     document.getElementById('btn-dbc').classList.add('active');
     document.getElementById('model-btn-wrap').style.display = 'block';
+    document.getElementById('ecp-log-btn-wrap').style.display = 'none';
   } else {
     document.getElementById('model-btn-wrap').style.display = 'none';
+    document.getElementById('ecp-log-btn-wrap').style.display = 'block';
   }
 
   localLoad();
