@@ -2285,11 +2285,26 @@ function renderReadingGuide(taskName){
   html += `<div class="prompt-section-heading" style="font-size:13px;margin-bottom:10px;">📚 Reading Guide for This Week</div>`;
 
   if(guide.yalom){
+    // Per-chapter chapter ranges by week
+    const yalomRanges = {2:[1,10],3:[11,20],4:[21,30],5:[31,40],6:[41,50],7:[51,60],8:[61,70],9:[71,85]};
+    const range = yalomRanges[week];
     html += `<div style="font-weight:700;font-size:13px;color:var(--text);margin-bottom:6px;">Yalom — ${escHtml(guide.yalom.chapters)}</div>`;
-    guide.yalom.themes.forEach(t=>{
-      html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;">${escHtml(t.heading)}</div>`;
-      html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);">${escHtml(t.summary)}</div>`;
-    });
+    if(range && typeof YALOM_CHAPTERS !== 'undefined'){
+      for(let ch = range[0]; ch <= range[1]; ch++){
+        const thought = YALOM_CHAPTERS[ch];
+        if(thought){
+          html += `<div style="margin-bottom:8px;">`;
+          html += `<span style="font-weight:700;font-size:12.5px;color:var(--green-dark);">Ch. ${ch} — </span>`;
+          html += `<span class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);display:inline;">${escHtml(thought)}</span>`;
+          html += `</div>`;
+        }
+      }
+    } else {
+      guide.yalom.themes.forEach(t=>{
+        html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;">${escHtml(t.heading)}</div>`;
+        html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);">${escHtml(t.summary)}</div>`;
+      });
+    }
     html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Yalom vs. Scripture</div>`;
     html += `<div class="nb-item scripture" style="padding-left:0;border-left:none;font-size:var(--reading-font-size,14px);">${escHtml(guide.yalom.scripture_contrast)}</div>`;
     html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Reflection Prompts</div>`;
@@ -8691,6 +8706,96 @@ const ECP_LOG_WEEKS = [
     draftKey: "Extended Conversation, Week 9 Prompt",
   },
 ];
+
+
+// ── Yalom: The Gift of Therapy — Per-Chapter Key Thoughts ────
+const YALOM_CHAPTERS = {
+  1: "Therapy heals through relationship, not technique — the quality of the connection between therapist and client matters more than any specific method or theoretical framework.",
+  2: "The therapist should be willing to disclose personal reactions and feelings when they serve the client's growth, moving away from the blank-screen model of detached professional neutrality.",
+  3: "Empathy — the ability to enter another's world and see life from their vantage point — is the therapist's most essential skill, and it must be genuine, not performed.",
+  4: "The 'here-and-now' of the therapeutic session (what's happening between therapist and client right now) is the most powerful arena for therapeutic work, more important than reconstructing the past.",
+  5: "The therapeutic relationship functions as a 'social microcosm' — how a client relates to the therapist mirrors exactly how they relate to everyone else in their life.",
+  6: "Process commentary — the therapist's observations about what is happening between the two of them in the room — is one of the most powerful interventions available.",
+  7: "The therapist's own anxiety about death, loss, and the limits of helping can cause them to retreat into professional distance; genuine presence requires tolerating this anxiety rather than hiding behind technique.",
+  8: "Therapists must avoid 'role-scripted relationships' — treating clients as cases rather than persons — and must be willing to be genuinely affected by the encounter.",
+  9: "Every therapist brings their own unresolved personal issues to the work; self-awareness is not optional but an ethical obligation to every client.",
+  10: "The most common way therapists fail clients is by being too cautious, too detached, and too unwilling to take relational risks in the name of professional safety.",
+  11: "Dreams are valuable not as symbolic puzzles to decode but as windows into what is most alive and unresolved in the client's present experience.",
+  12: "Working with dreams in therapy means staying close to the client's own emotional response to the dream rather than imposing the therapist's interpretive framework onto it.",
+  13: "A dream's feeling-tone — the emotional quality the dreamer wakes with — is often more therapeutically significant than the specific images or narrative content.",
+  14: "The therapist's emotional reactions to a client — including uncomfortable ones like boredom, irritation, or attraction — are clinically valuable data, not interference to be suppressed.",
+  15: "If a therapist feels a certain persistent way about a client, others in the client's life very likely feel similarly; this makes the therapist's reactions a diagnostic window into the client's relational world.",
+  16: "Therapists must find ways to use their countertransference reactions productively — sharing them appropriately rather than either acting on them or suppressing them entirely.",
+  17: "Avoiding difficult observations or confrontations out of the therapist's own anxiety or desire for approval is a form of cowardice that ultimately fails the client.",
+  18: "What a client needs to hear is often exactly what the therapist has been reluctant to say; the unsaid observation is frequently the most therapeutically important one.",
+  19: "Therapists must distinguish between the discomfort of saying something hard (which should be pushed through) and genuine uncertainty about whether something should be said (which deserves more thought).",
+  20: "Feedback should be offered in a spirit of care, not correction — the therapist's intention in raising a difficult observation shapes how it can be received.",
+  21: "Death anxiety is one of the four 'ultimate concerns' that therapy must eventually address; pushing it to the background produces a therapy that skims the surface of human experience.",
+  22: "Awareness of mortality, if genuinely faced rather than pushed aside, can function as an 'awakening experience' — clarifying what actually matters and motivating authentic change.",
+  23: "Many clients who have had near-death experiences or serious illness report a dramatic shift in their priorities and a new capacity to live in the present; Yalom argues therapists should actively cultivate this awareness.",
+  24: "The therapist's own mortality is therapeutically relevant — a therapist who has faced their own death brings a depth of understanding to dying clients that no amount of clinical training can substitute for.",
+  25: "Freedom — in existential terms — means radical responsibility for the choices that constitute one's life; most clients arrive in therapy having spent years evading this responsibility.",
+  26: "Clients commonly use the therapeutic relationship itself as an evasion of personal responsibility, waiting for the therapist to provide answers or direction rather than taking ownership of their choices.",
+  27: "The therapeutic goal around freedom is not to relieve the client of anxiety about choice, but to help them make peace with their inalienable responsibility for authoring their own lives.",
+  28: "Existential isolation — the irreducible separateness of each self — is not curable by any human relationship, but genuine encounter (two people meeting authentically across that gap) is possible and healing.",
+  29: "The therapeutic relationship, at its best, models the kind of genuine encounter that many clients have never experienced — being fully met by another person who does not need them to be different.",
+  30: "Loneliness and existential isolation are distinct: loneliness is the absence of people; isolation is the permanent gulf between distinct selves that persists even in the most intimate relationships.",
+  31: "Meaninglessness — the fourth ultimate concern — presents differently from death, freedom, and isolation: it is not a fear of something but a sheer absence, a void where significance should be.",
+  32: "Yalom's answer to meaninglessness is not a philosophy but a practice: engage fully, commit genuinely, and meaning emerges as a byproduct of wholehearted participation in life.",
+  33: "The therapist's own engagement — their genuine interest in each client, their passion for the work — models the very antidote to meaninglessness they are trying to help the client find.",
+  34: "Research consistently shows that the quality of the therapeutic relationship (the alliance) predicts outcomes far better than any specific theoretical approach or technique.",
+  35: "Specific techniques in therapy derive their effectiveness primarily from the relationship in which they are embedded, not from their own intrinsic power.",
+  36: "The 'common factors' across all effective therapies — empathy, genuine regard, a coherent rationale, a structured approach — are more important than what distinguishes one theory from another.",
+  37: "Therapists who are rigidly attached to a single theoretical framework often miss what is actually happening in the room by forcing the client's experience into predetermined categories.",
+  38: "Personal therapy for the therapist is not merely a training requirement but an ongoing ethical obligation — a therapist who has not faced their own fears will inevitably import them into clients' sessions.",
+  39: "The therapist's unexamined 'blind spots' — areas of personal avoidance — tend to appear exactly in the clinical situations where the client most needs the therapist to be fully present.",
+  40: "A therapist's continued personal growth — through therapy, supervision, reading, and genuine friendships — is inseparable from their competence as a clinician.",
+  41: "Resistance in therapy is not an obstacle to be overcome but the material itself — the very patterns that create problems in the client's life manifest in how they engage (or avoid engaging) in therapy.",
+  42: "When a client avoids a particular topic or changes the subject, the avoidance itself is more therapeutically significant than whatever they are avoiding.",
+  43: "Clients often arrive late, forget appointments, or 'lose' insights gained in previous sessions; these are not failures of memory but expressions of the same self-protective patterns that brought them to therapy.",
+  44: "The most therapeutically productive thing a therapist can do with resistance is to become curious about it rather than frustrated — treating it as a communication rather than an obstacle.",
+  45: "Therapist errors are inevitable; what matters far more than the error itself is how the therapist responds — acknowledging it honestly, exploring its impact, and genuinely repairing the relationship.",
+  46: "A therapist who can acknowledge mistakes and repair ruptures models exactly the kind of honest accountability most clients have never encountered in a close relationship.",
+  47: "Clients often experience a therapist's acknowledgment of an error as more healing than the smooth sessions in which no mistake was made — because it proves the therapist is genuinely present, not performing.",
+  48: "The ending of therapy is as therapeutically significant as any other part of the work; it inevitably evokes existential themes of loss, death, and the passage of time.",
+  49: "A well-handled ending involves explicitly reviewing the work together, naming what has changed, acknowledging what remains unfinished, and saying a genuine goodbye.",
+  50: "Therapists are changed by their clients — the encounter runs in both directions, and acknowledging this openly is part of the therapist's integrity rather than a boundary violation.",
+  51: "Genuine care — something close to love — is the therapist's most powerful tool; technique without it is hollow, and no amount of skill compensates for its absence.",
+  52: "The will to truly understand another person — to see life from inside their experience — is itself therapeutic, independent of any specific intervention that follows from it.",
+  53: "Love in the therapeutic context must be distinguished from romantic love and kept within appropriate boundaries, but its absence produces a clinical coldness that fails clients at the deepest level.",
+  54: "Yalom draws on Schopenhauer's idea that genuine compassion — seeing oneself in the other — is the only ethical stance that truly connects human beings to each other.",
+  55: "Narcissistic clients are among the most challenging to work with not because they are bad people but because their defensive self-focus makes genuine encounter extremely difficult.",
+  56: "The therapist's best response to a narcissistic client's self-centeredness is not interpretation or confrontation but patient, consistent modeling of genuine interest in the other person.",
+  57: "Clients who seem passive, helpless, or 'resistant to help' are often expressing the very dynamics that create their life problems — the therapist's curiosity about this is the only productive response.",
+  58: "Therapeutic work accumulates weight over time — the sustained exposure to human suffering requires that therapists actively attend to their own renewal, not as luxury but as professional necessity.",
+  59: "Burnout in therapists comes not from caring too much but from failing to attend to one's own growth, friendships, and sources of meaning alongside the demands of the work.",
+  60: "A therapist who is alive — genuinely curious, continuing to grow, engaged in their own relationships and creative life — brings something to sessions that no burned-out technician can offer.",
+  61: "Shame is one of the most difficult emotions to work with therapeutically because it involves the whole self as defective, not a specific action, and it is typically well-hidden.",
+  62: "The therapeutic relationship is itself a corrective experience for shame — being fully known (including the shameful parts) without being rejected or condemned is something many clients have never experienced.",
+  63: "The therapist's non-shaming, non-judging response to the client's disclosure is not merely a technique but a genuine encounter that can begin to repair the damage of years of shame.",
+  64: "Psychiatric diagnoses are useful for some purposes (insurance billing, research classification) but can harm therapy by encouraging the therapist to treat the label rather than the person.",
+  65: "When a therapist relates to a client primarily through a diagnostic framework, they risk missing the unique existential situation of that specific human being.",
+  66: "Yalom advocates for an 'idiographic' approach — treating each client as a unique individual whose specific situation cannot be reduced to any diagnostic category, however accurate.",
+  67: "Therapists are genuinely shaped by their clients — the work develops empathy, wisdom, and self-awareness in the therapist as much as any formal training or personal therapy.",
+  68: "The privilege of access to another person's inner world — a trust extended to few people in any life — is one of the deepest satisfactions of therapeutic work.",
+  69: "Witnessing a client's 'awakening' moment — when something long hidden becomes conscious for the first time — is an experience of genuine joy that sustains the therapist through the accumulated weight of the work.",
+  70: "The therapeutic relationship, at its best, involves mutual growth — both parties are changed, and the therapist who denies this is being dishonest about what actually happens in the room.",
+  71: "Sitting with uncertainty — not filling silence prematurely, not rushing to interpretation — is one of the hardest and most important skills a therapist develops.",
+  72: "Humor, used appropriately, is a genuine therapeutic tool — it can puncture pretension, relieve tension, and create sudden intimacy, but it must emerge from the relationship rather than being performed.",
+  73: "The therapist must tolerate not-knowing — the client's situation often resists easy formulation, and premature closure is worse than sitting with the ambiguity.",
+  74: "Advanced therapeutic skill often looks paradoxically simpler than novice skill — less intervention, more presence, longer silences, fewer clever interpretations.",
+  75: "The experience of genuine intimacy with another human being's inner life — which therapy at its best provides — is one of the most profound satisfactions available in any vocation.",
+  76: "The therapist's own sense of meaning in the work is continuously renewed through the work itself — each client offers a new encounter with what it means to be human.",
+  77: "Therapeutic work is morally serious in a way that distinguishes it from most other professions; the therapist is entrusted with something irreplaceable — another person's inner life.",
+  78: "The temptation to coast — to rely on accumulated skill and stop genuinely growing — is one of the most dangerous occupational hazards of an experienced therapist.",
+  79: "Great therapeutic work requires remaining a perpetual beginner in the most important sense — genuinely curious about each new client rather than confident that one already knows.",
+  80: "Yalom reflects on the question of legacy: what outlasts a therapist's life? The effects of genuine care ripple outward through clients, their children, their relationships — a 'rippling' model of impact.",
+  81: "The therapist who has genuinely helped someone carries that encounter as a permanent part of who they are — the relationship changes both parties, and neither is the same afterward.",
+  82: "Facing one's own death as a therapist — rather than suppressing awareness of it — produces a depth of engagement with clients, especially dying clients, that nothing else can substitute for.",
+  83: "The approach of death clarifies: trivial concerns fall away, authentic priorities emerge, and what genuinely matters in a life becomes visible in a way that ordinary living obscures.",
+  84: "Yalom notes that many of his most meaningful therapeutic relationships began in their last sessions — the approach of ending concentrated and purified what was most genuine between them.",
+  85: "The ultimate gift of therapy flows in both directions: the therapist gives the client a genuine encounter with another human being who truly wants to understand them; the client gives the therapist repeated encounters with what it means to be fully human.",
+};
 
 
 // ── Boot ───────────────────────────────────────────────────
