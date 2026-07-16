@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="cache-bust" content="v22">
+<meta name="cache-bust" content="v24">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -2254,6 +2254,36 @@ function toggleLens(ch){
   if(toggle) toggle.textContent = isOpen ? '📖 Scripture Lens →' : '📖 Hide Scripture Lens ↑';
 }
 
+let esvBoxCounter = 0;
+function renderEsvBox(refList){
+  if(!refList || !refList.length || typeof ESV_VERSES === 'undefined') return '';
+  const id = `esv-${esvBoxCounter++}`;
+  let inner = '';
+  refList.forEach(ref=>{
+    const text = ESV_VERSES[ref];
+    if(!text) return;
+    inner += `<div style="margin-bottom:8px;">`;
+    inner += `<div style="font-weight:700;font-size:12px;color:var(--green-dark);margin-bottom:2px;">${escHtml(ref)} (ESV)</div>`;
+    inner += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);font-style:italic;">${escHtml(text)}</div>`;
+    inner += `</div>`;
+  });
+  if(!inner) return '';
+  let html = `<div style="margin-top:10px;"><a href="#" onclick="toggleEsv('${id}');return false;" id="${id}-toggle" style="font-size:12px;font-weight:600;color:var(--text);text-decoration:none;">📜 Read the Verses (ESV) →</a></div>`;
+  html += `<div id="${id}" style="display:none;margin-top:6px;background:#fff;border-radius:8px;padding:10px 12px;border:1px solid var(--green-light);">${inner}`;
+  html += `<div style="font-size:10px;color:var(--muted);margin-top:6px;border-top:1px solid var(--green-light);padding-top:6px;">Scripture quotations are from the ESV® Bible (The Holy Bible, English Standard Version®), copyright © 2001 by Crossway, a publishing ministry of Good News Publishers. Used by permission. All rights reserved.</div>`;
+  html += `</div>`;
+  return html;
+}
+
+function toggleEsv(id){
+  const box = document.getElementById(id);
+  const toggle = document.getElementById(`${id}-toggle`);
+  if(!box) return;
+  const isOpen = box.style.display !== 'none';
+  box.style.display = isOpen ? 'none' : 'block';
+  if(toggle) toggle.textContent = isOpen ? '📜 Read the Verses (ESV) →' : '📜 Hide Verses ↑';
+}
+
 function renderReadingGuide(taskName){
   // Check for per-question paper guide first
   if(typeof HR_PAPER_GUIDES !== 'undefined' && HR_PAPER_GUIDES[taskName]){
@@ -2313,6 +2343,7 @@ function renderReadingGuide(taskName){
             html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);margin-bottom:8px;">${escHtml(lens.converge)}</div>`;
             html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#A0522D;margin-bottom:3px;">Where it diverges from Scripture</div>`;
             html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);">${escHtml(lens.diverge)}</div>`;
+            html += renderEsvBox((typeof YALOM_LENS_REFS !== 'undefined') ? YALOM_LENS_REFS[ch] : null);
             html += `</div>`;
           }
           html += `</div>`;
@@ -2324,8 +2355,20 @@ function renderReadingGuide(taskName){
         html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);">${escHtml(t.summary)}</div>`;
       });
     }
-    html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Yalom vs. Scripture</div>`;
-    html += `<div class="nb-item scripture" style="padding-left:0;border-left:none;font-size:var(--reading-font-size,14px);">${escHtml(guide.yalom.scripture_contrast)}</div>`;
+    const weekLens = (typeof YALOM_WEEK_LENS_SUMMARY !== 'undefined') ? YALOM_WEEK_LENS_SUMMARY[week] : null;
+    if(weekLens){
+      html += `<div style="margin-top:10px;background:var(--green-light);border-radius:10px;padding:12px 14px;border:1px solid var(--green-light);">`;
+      html += `<div class="prompt-section-heading" style="text-transform:none;font-size:13px;letter-spacing:0;margin-bottom:6px;">📖 Scripture Lens Summary — ${escHtml(guide.yalom.chapters)}</div>`;
+      html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--green-dark);margin-bottom:3px;">Where this week converges with Scripture</div>`;
+      html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);margin-bottom:10px;">${escHtml(weekLens.converge)}</div>`;
+      html += `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:#A0522D;margin-bottom:3px;">Where this week diverges from Scripture</div>`;
+      html += `<div class="nb-item" style="border-left:none;padding-left:0;font-size:var(--reading-font-size,14px);">${escHtml(weekLens.diverge)}</div>`;
+      html += renderEsvBox((typeof YALOM_WEEK_LENS_REFS !== 'undefined') ? YALOM_WEEK_LENS_REFS[week] : null);
+      html += `</div>`;
+    } else {
+      html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Yalom vs. Scripture</div>`;
+      html += `<div class="nb-item scripture" style="padding-left:0;border-left:none;font-size:var(--reading-font-size,14px);">${escHtml(guide.yalom.scripture_contrast)}</div>`;
+    }
     html += `<div class="prompt-section-heading" style="text-transform:none;font-size:12.5px;letter-spacing:0;margin-top:8px;">Reflection Prompts</div>`;
     html += `<ul class="prompt-questions">`;
     guide.yalom.reflection_prompts.forEach(p=>{html += `<li style="font-size:var(--reading-font-size,14px);">${escHtml(p)}</li>`;});
@@ -8898,6 +8941,145 @@ const YALOM_SCRIPTURE_LENS = {
       diverge:"Yalom's 'parts' language treats the self as a coalition of competing psychological factions to be gently negotiated with. Scripture describes internal conflict as the ongoing war between the flesh and the Spirit within a single, unified person made in God's image (Gal. 5:17), calling the whole person to repentance rather than negotiating with a 'part.'"},
   40:{converge:"Waiting for the right moment to speak truth, rather than piling on in a moment of vulnerability, reflects the wisdom of 'a word fitly spoken' (Prov. 25:11) and gentleness with the fainthearted (1 Thess. 5:14).",
       diverge:"Yalom's timing strategy serves therapeutic impact and insight. Scripture's timing is governed by love and wisdom about what will actually help someone hear and receive truth from God, with the goal being repentance and comfort in Christ, not simply behavioral self-awareness."},
+};
+
+// ── Week-level Scripture Lens summaries (synthesizing the chapters in each week) ──
+const YALOM_WEEK_LENS_SUMMARY = {
+  2: {converge:"Chapters 1–10 repeatedly overlap with basic biblical care: genuine, specific encouragement (1 Thess. 5:11); empathy that enters another's experience (Rom. 12:15); humility that puts helper and helped on the same level ('fellow travelers,' 2 Cor. 1:4); and honest confession of one's own errors (James 5:16). These are common-grace insights that a biblical counselor can affirm wholeheartedly.",
+      diverge:"The consistent divergence across this block is that Yalom's model is entirely horizontal and psychological. Growth is self-actualization (an acorn needing only obstacles removed, not a heart needing regeneration); empathy has no anchor outside the patient's own perceived world; and the therapist himself quietly becomes the source of acceptance, mattering, and significance that Scripture reserves for God. Sin, guilt before God, and the gospel have no real place in his account of what's wrong or what ultimately heals."},
+  3: {converge:"Chapters 11–20 emphasize real, present, honest relational engagement — attentiveness to the heart behind words, willingness to notice and name relational patterns as they happen. This overlaps with biblical wisdom about speaking truth in love (Eph. 4:15) and discerning the heart rather than just the words (1 Sam. 16:7; Luke 6:45).",
+      diverge:"Across this block the therapy relationship itself becomes the primary 'laboratory' for truth, and the therapist's own in-session feelings become near-authoritative clinical data. Scripture places the primary testing ground for sanctification in the church and ordinary relationships under God (1 Cor. 3:5-7), and calls for feelings to be tested against Scripture and community rather than trusted as self-authenticating (Jer. 17:9)."},
+  4: {converge:"Chapters 21–30 center on honesty, transparency, and willingness to be truly known rather than hiding behind professional distance — this resonates strongly with the biblical call to walk in the light, confess concealment, and let others genuinely into our lives (1 John 1:6-7; 1 Thess. 2:8).",
+      diverge:"The boundaries around self-disclosure here are calibrated almost entirely to clinical effectiveness ('has it ever backfired?') rather than to what serves someone's relationship with God. The confidentiality and disclosure ethic, while often wise, has no reference point in accountability to the body of Christ or in confession before God — the goal is a better therapeutic alliance, not a clearer conscience before God (Acts 24:16)."},
+  5: {converge:"Chapters 31–40 return again and again to exposing blind spots, avoiding idolization of the helper, and giving feedback gently and at the right moment — all of which overlaps strongly with Proverbs' wisdom about counsel, humility, and well-timed words (Prov. 27:2,6; 25:11) and the danger of misplaced trust in a human helper (Jer. 17:5).",
+      diverge:"Yet the stated goal throughout is psychological insight and relational trust rather than repentance. Yalom's 'wizard' critique rightly warns against magical thinking about a therapist's power but stops short of naming this as actual idolatry; and his 'parts' language treats the self as a coalition of competing psychological factions to be negotiated with, rather than a single person made in God's image, caught in the ongoing war between flesh and Spirit (Gal. 5:17), who needs the whole self to repent."},
+};
+
+// ── ESV verse text for the Scripture Lens references ──
+const ESV_VERSES = {
+  "1 Cor. 12:12,25-26": "For just as the body is one and has many members, and all the members of the body, though many, are one body, so it is with Christ... that there may be no division in the body, but that the members may have the same care for one another. If one member suffers, all suffer together; if one member is honored, all rejoice together.",
+  "1 Cor. 13:12": "For now we see in a mirror dimly, but then face to face. Now I know in part; then I shall know fully, even as I have been fully known.",
+  "1 Cor. 15:19-22": "If in Christ we have hope in this life only, we are of all people most to be pitied. But in fact Christ has been raised from the dead, the firstfruits of those who have fallen asleep. For as by a man came death, by a man has come also the resurrection of the dead. For as in Adam all die, so also in Christ shall all be made alive.",
+  "1 Cor. 3:4-7": "For when one says, “I follow Paul,” and another, “I follow Apollos,” are you not being merely human? What then is Apollos? What is Paul? Servants through whom you believed, as the Lord assigned to each. I planted, Apollos watered, but God gave the growth. So neither he who plants nor he who waters is anything, but only God who gives the growth.",
+  "1 John 1:6-7": "If we say we have fellowship with him while we walk in darkness, we lie and do not practice the truth. But if we walk in the light, as he is in the light, we have fellowship with one another, and the blood of Jesus his Son cleanses us from all sin.",
+  "1 John 1:7-9": "But if we walk in the light, as he is in the light, we have fellowship with one another, and the blood of Jesus his Son cleanses us from all sin. If we say we have no sin, we deceive ourselves, and the truth is not in us. If we confess our sins, he is faithful and just to forgive us our sins and to cleanse us from all unrighteousness.",
+  "1 John 3:18": "Little children, let us not love in word or talk but in deed and in truth.",
+  "1 Sam. 16:7": "For the LORD sees not as man sees: man looks on the outward appearance, but the LORD looks on the heart.",
+  "1 Thess. 2:8": "So, being affectionately desirous of you, we were ready to share with you not only the gospel of God but also our own selves, because you had become very dear to us.",
+  "1 Thess. 4:13": "But we do not want you to be uninformed, brothers, about those who are asleep, that you may not grieve as others do who have no hope.",
+  "1 Thess. 5:11": "Therefore encourage one another and build one another up, just as you are doing.",
+  "1 Thess. 5:14": "And we urge you, brothers, admonish the idle, encourage the fainthearted, help the weak, be patient with them all.",
+  "1 Tim. 1:15": "The saying is trustworthy and deserving of full acceptance, that Christ Jesus came into the world to save sinners, of whom I am the foremost.",
+  "1 Tim. 3:6": "He must not be a recent convert, or he may become puffed up with conceit and fall into the condemnation of the devil.",
+  "2 Cor. 12:7-10": "So to keep me from becoming conceited... a thorn was given me in the flesh... Three times I pleaded with the Lord about this, that it should leave me. But he said to me, “My grace is sufficient for you, for my power is made perfect in weakness.” Therefore I will boast all the more gladly of my weaknesses, so that the power of Christ may rest upon me.",
+  "2 Cor. 13:5": "Examine yourselves, to see whether you are in the faith. Test yourselves. Or do you not realize this about yourselves, that Jesus Christ is in you?—unless indeed you fail to meet the test!",
+  "2 Cor. 1:4": "who comforts us in all our affliction, so that we may be able to comfort those who are in any affliction, with the comfort with which we ourselves are comforted by God.",
+  "2 Cor. 1:8-9": "For we do not want you to be ignorant, brothers, of the affliction we experienced in Asia. For we were so utterly burdened beyond our strength that we despaired of life itself. Indeed, we felt that we had received the sentence of death. But that was to make us rely not on ourselves but on God who raises the dead.",
+  "2 Cor. 2:4": "For I wrote to you out of much affliction and anguish of heart and with many tears, not to cause you pain but to let you know the abundant love that I have for you.",
+  "2 Cor. 3:18": "And we all, with unveiled face, beholding the glory of the Lord, are being transformed into the same image from one degree of glory to another. For this comes from the Lord who is the Spirit.",
+  "2 Cor. 4:2": "But we have renounced disgraceful, underhanded ways. We refuse to practice cunning or to tamper with God's word, but by the open statement of the truth we would commend ourselves to everyone's conscience in the sight of God.",
+  "2 Cor. 7:8-13": "As it is, I rejoice, not because you were grieved, but because you were grieved into repenting. For you felt a godly grief, so that you suffered no loss through us. For godly grief produces a repentance that leads to salvation without regret, whereas worldly grief produces death.",
+  "2 Tim. 2:22": "So flee youthful passions and pursue righteousness, faith, love, and peace, along with those who call on the Lord from a pure heart.",
+  "2 Tim. 2:24-25": "And the Lord's servant must not be quarrelsome but kind to everyone, able to teach, patiently enduring evil, correcting his opponents with gentleness. God may perhaps grant them repentance leading to a knowledge of the truth,",
+  "2 Tim. 3:16-17": "All Scripture is breathed out by God and profitable for teaching, for reproof, for correction, and for training in righteousness, that the man of God may be complete, equipped for every good work.",
+  "Acts 24:16": "So I always take pains to have a clear conscience toward both God and man.",
+  "Col. 4:6": "Let your speech always be gracious, seasoned with salt, so that you may know how you ought to answer each person.",
+  "Eph. 4:15": "Rather, speaking the truth in love, we are to grow up in every way into him who is the head, into Christ,",
+  "Eph. 4:25": "Therefore, having put away falsehood, let each one of you speak the truth with his neighbor, for we are members one of another.",
+  "Eph. 4:32": "Be kind to one another, tenderhearted, forgiving one another, as God in Christ forgave you.",
+  "Gal. 5:17": "For the desires of the flesh are against the Spirit, and the desires of the Spirit are against the flesh, for these are opposed to each other, to keep you from doing the things you want to do.",
+  "Gal. 5:22": "But the fruit of the Spirit is love, joy, peace, patience, kindness, goodness, faithfulness,",
+  "Gal. 6:1": "Brothers, if anyone is caught in any transgression, you who are spiritual should restore him in a spirit of gentleness. Keep watch on yourself, lest you too be tempted.",
+  "Gal. 6:2": "Bear one another's burdens, and so fulfill the law of Christ.",
+  "Gal. 6:7": "Do not be deceived: God is not mocked, for whatever one sows, that will he also reap.",
+  "Gen. 2:18": "Then the LORD God said, “It is not good that the man should be alone; I will make him a helper fit for him.”",
+  "Heb. 12:1": "Therefore, since we are surrounded by so great a cloud of witnesses, let us also lay aside every weight, and sin which clings so closely, and let us run with endurance the race that is set before us,",
+  "Heb. 4:15": "For we do not have a high priest who is unable to sympathize with our weaknesses, but one who in every respect has been tempted as we are, yet without sin.",
+  "James 2:15-17": "If a brother or sister is poorly clothed and lacking in daily food, and one of you says to them, “Go in peace, be warmed and filled,” without giving them the things needed for the body, what good is that? So also faith by itself, if it does not have works, is dead.",
+  "James 3:1": "Not many of you should become teachers, my brothers, for you know that we who teach will be judged with greater strictness.",
+  "James 5:16": "Therefore, confess your sins to one another and pray for one another, that you may be healed. The prayer of a righteous person has great power as it is working.",
+  "Jer. 17:5": "Thus says the LORD: “Cursed is the man who trusts in man and makes flesh his strength, whose heart turns away from the LORD.”",
+  "Jer. 17:9": "The heart is deceitful above all things, and desperately sick; who can understand it?",
+  "Jer. 6:14": "They have healed the wound of my people lightly, saying, ‘Peace, peace,’ when there is no peace.",
+  "John 10:14": "I am the good shepherd. I know my own and my own know me,",
+  "John 17:17": "Sanctify them in the truth; your word is truth.",
+  "Luke 16:10": "One who is faithful in a very little is also faithful in much, and one who is dishonest in a very little is also dishonest in much.",
+  "Luke 6:45": "The good person out of the good treasure of his heart produces good, and the evil person out of his evil treasure produces evil, for out of the abundance of the heart his mouth speaks.",
+  "Matt. 18:15": "If your brother sins against you, go and tell him his fault, between you and him alone. If he listens to you, you have gained your brother.",
+  "Neh. 1:4": "As soon as I heard these words I sat down and wept and mourned for days, and I continued fasting and praying before the God of heaven.",
+  "Phil. 1:6": "And I am sure of this, that he who began a good work in you will bring it to completion at the day of Jesus Christ.",
+  "Phil. 2:3-4": "Do nothing from rivalry or conceit, but in humility count others more significant than yourselves. Let each of you look not only to his own interests, but also to the interests of others.",
+  "Phil. 2:5-8": "Have this mind among yourselves, which is yours in Christ Jesus, who, though he was in the form of God, did not count equality with God a thing to be grasped, but emptied himself, by taking the form of a servant, being born in the likeness of men... he humbled himself by becoming obedient to the point of death, even death on a cross.",
+  "Prov. 10:19": "When words are many, transgression is not lacking, but whoever restrains his lips is prudent.",
+  "Prov. 11:14": "Where there is no guidance, a people falls, but in an abundance of counselors there is safety.",
+  "Prov. 20:5": "The purpose in a man's heart is like deep water, but a man of understanding will draw it out.",
+  "Prov. 25:11": "A word fitly spoken is like apples of gold in a setting of silver.",
+  "Prov. 26:4-5": "Answer not a fool according to his folly, lest you be like him yourself. Answer a fool according to his folly, lest he be wise in his own eyes.",
+  "Prov. 27:17": "Iron sharpens iron, and one man sharpens another.",
+  "Prov. 27:2": "Let another praise you, and not your own mouth; a stranger, and not your own lips.",
+  "Prov. 27:6": "Faithful are the wounds of a friend; profuse are the kisses of an enemy.",
+  "Ps. 139:1-6": "O LORD, you have searched me and known me! You know when I sit down and when I rise up; you discern my thoughts from afar. You search out my path and my lying down and are acquainted with all my ways. Even before a word is on my tongue, behold, O LORD, you know it altogether. You hem me in, behind and before, and lay your hand upon me. Such knowledge is too wonderful for me; it is high; I cannot attain it.",
+  "Ps. 139:23-24": "Search me, O God, and know my heart! Try me and know my thoughts! And see if there be any grievous way in me, and lead me in the way everlasting!",
+  "Ps. 19:12": "Who can discern his errors? Declare me innocent from hidden faults.",
+  "Ps. 51:1-4": "Have mercy on me, O God, according to your steadfast love; according to your abundant mercy blot out my transgressions. Wash me thoroughly from my iniquity, and cleanse me from my sin! For I know my transgressions, and my sin is ever before me. Against you, you only, have I sinned and done what is evil in your sight.",
+  "Rom. 12:15": "Rejoice with those who rejoice, weep with those who weep.",
+  "Rom. 12:2": "Do not be conformed to this world, but be transformed by the renewal of your mind, that by testing you may discern what is the will of God, what is good and acceptable and perfect.",
+  "Rom. 1:12": "that is, that we may be mutually encouraged by each other's faith, both yours and mine.",
+  "Rom. 3:10-12": "as it is written: “None is righteous, no, not one; no one understands; no one seeks for God. All have turned aside; together they have become worthless; no one does good, not even one.”",
+  "Rom. 3:23": "for all have sinned and fall short of the glory of God,",
+  "Rom. 7:15-19": "For I do not understand my own actions. For I do not do what I want, but I do the very thing I hate... For I know that nothing good dwells in me, that is, in my flesh. For I have the desire to do what is right, but not the ability to carry it out. For I do not do the good I want, but the evil I do not want is what I keep on doing.",
+  "Rom. 8:1": "There is therefore now no condemnation for those who are in Christ Jesus.",
+  "Rom. 8:38-39": "For I am sure that neither death nor life, nor angels nor rulers, nor things present nor things to come, nor powers, nor height nor depth, nor anything else in all creation, will be able to separate us from the love of God in Christ Jesus our Lord.",
+};
+
+const YALOM_LENS_REFS = {
+  1: ["Heb. 12:1", "Jer. 17:9", "Rom. 3:10-12", "Phil. 1:6", "2 Cor. 3:18"],
+  2: ["Prov. 20:5", "Rom. 3:23"],
+  3: ["2 Cor. 1:4", "1 Tim. 1:15", "1 Thess. 4:13", "1 Cor. 15:19-22"],
+  4: ["Ps. 139:1-6", "Rom. 8:38-39"],
+  5: ["1 Thess. 5:11", "Eph. 4:15"],
+  6: ["Rom. 12:15", "Gal. 6:2", "Heb. 4:15"],
+  7: ["Phil. 2:3-4", "Gal. 5:22", "Phil. 2:5-8"],
+  8: ["1 Thess. 2:8", "John 10:14", "2 Tim. 2:22"],
+  9: ["James 5:16", "1 John 1:7-9", "Eph. 4:32"],
+  10: ["Prov. 26:4-5", "2 Tim. 3:16-17", "John 17:17"],
+  11: ["1 John 3:18", "James 2:15-17"],
+  12: ["Ps. 139:23-24", "1 Tim. 3:6", "2 Cor. 13:5", "Ps. 51:1-4"],
+  13: ["James 3:1", "1 Cor. 3:4-7"],
+  14: ["Eph. 4:15", "Eph. 4:25"],
+  15: ["Gen. 2:18", "Prov. 27:17", "1 Cor. 13:12"],
+  16: ["Luke 6:45"],
+  17: ["Gal. 6:7"],
+  18: ["Gal. 6:1"],
+  19: ["1 Sam. 16:7", "Rom. 12:2"],
+  20: ["Neh. 1:4", "Jer. 17:9"],
+  21: ["Col. 4:6", "2 Tim. 2:24-25", "Matt. 18:15"],
+  22: ["Luke 16:10"],
+  23: ["2 Cor. 7:8-13"],
+  24: ["1 John 1:6-7", "Eph. 4:25", "Acts 24:16"],
+  25: ["1 Thess. 2:8", "Gal. 6:2"],
+  26: ["2 Cor. 12:7-10"],
+  27: ["2 Cor. 4:2"],
+  28: ["2 Cor. 2:4"],
+  29: ["2 Cor. 1:8-9"],
+  30: ["Prov. 10:19"],
+  31: ["2 Cor. 1:4", "Rom. 8:1"],
+  32: ["1 Cor. 3:4-7", "Jer. 17:5"],
+  33: ["Jer. 6:14"],
+  34: ["2 Cor. 1:4", "1 John 1:7-9"],
+  35: ["1 Cor. 12:12,25-26", "Rom. 1:12"],
+  36: ["James 5:16", "Gal. 6:1"],
+  37: ["Prov. 27:2", "Prov. 11:14", "Ps. 19:12"],
+  38: ["Gal. 6:1", "Prov. 27:6", "Matt. 18:15"],
+  39: ["Rom. 7:15-19", "Gal. 5:17"],
+  40: ["Prov. 25:11", "1 Thess. 5:14"],
+};
+
+const YALOM_WEEK_LENS_REFS = {
+  2: ["1 Thess. 5:11", "Rom. 12:15", "2 Cor. 1:4", "James 5:16"],
+  3: ["Eph. 4:15", "1 Sam. 16:7", "Luke 6:45", "1 Cor. 3:4-7", "Jer. 17:9"],
+  4: ["1 John 1:6-7", "1 Thess. 2:8", "Acts 24:16"],
+  5: ["Prov. 27:2", "Prov. 27:6", "Jer. 17:5", "Gal. 5:17"],
 };
 
 // ── Boot ───────────────────────────────────────────────────
