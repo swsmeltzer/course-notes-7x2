@@ -116,7 +116,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .font-size-slider{flex:1;}
 .notes-back{font-size:15px;color:var(--green);font-weight:500;cursor:pointer;padding:4px 0;-webkit-tap-highlight-color:transparent;white-space:nowrap}
 .notes-page-title{font-size:15px;font-weight:600;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.notes-page-body{padding:16px 16px 60px;flex:1;word-wrap:break-word;overflow-wrap:break-word;}
+.notes-page-body{padding:16px 16px 100px;flex:1;word-wrap:break-word;overflow-wrap:break-word;}
+.notes-back-floating{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:600;background:var(--green);color:#fff;font-size:15px;font-weight:600;padding:10px 18px;border-radius:999px;box-shadow:0 2px 10px rgba(0,0,0,0.25);cursor:pointer;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:6px}
+.notes-back-floating:active{opacity:0.85}
 
 /* Notebook content */
 .nb-section{margin-top:16px}
@@ -259,7 +261,6 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
 <!-- Notes Full Screen Page -->
 <div class="notes-page" id="notes-page">
   <div class="notes-page-header">
-    <span class="notes-back" onclick="closePanel()">← Back</span>
     <div class="notes-page-title" id="panel-title">Notes</div>
     <span class="font-size-toggle" onclick="toggleFontSizeBar(this)">Aa</span>
   </div>
@@ -269,11 +270,11 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
     <span class="font-size-label" style="font-size:20px;">A</span>
   </div>
   <div class="notes-page-body" id="panel-body"></div>
+  <span class="notes-back-floating" onclick="closePanel()">← Back</span>
 </div>
 
 <div class="notes-page" id="reading-page">
   <div class="notes-page-header">
-    <span class="notes-back" onclick="closeReading()">← Back</span>
     <div class="notes-page-title" id="reading-page-title">Reading</div>
     <span class="font-size-toggle" onclick="toggleFontSizeBar(this)">Aa</span>
   </div>
@@ -283,19 +284,19 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
     <span class="font-size-label" style="font-size:20px;">A</span>
   </div>
   <div class="notes-page-body" id="reading-page-body"></div>
+  <span class="notes-back-floating" onclick="closeReading()">← Back</span>
 </div>
 
 <div class="notes-page" id="model-page">
   <div class="notes-page-header">
-    <span class="notes-back" onclick="closeModel()">← Back</span>
     <div class="notes-page-title">3 Trees &amp; 8 Questions</div>
   </div>
   <div class="notes-page-body" id="model-page-body"></div>
+  <span class="notes-back-floating" onclick="closeModel()">← Back</span>
 </div>
 
 <div class="notes-page" id="summary-page">
   <div class="notes-page-header">
-    <span class="notes-back" onclick="closeSummary()">← Back</span>
     <div class="notes-page-title">My Notes &amp; Drafts</div>
     <span class="font-size-toggle" onclick="toggleFontSizeBar(this)">Aa</span>
   </div>
@@ -305,11 +306,11 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
     <span class="font-size-label" style="font-size:20px;">A</span>
   </div>
   <div class="notes-page-body" id="summary-page-body"></div>
+  <span class="notes-back-floating" onclick="closeSummary()">← Back</span>
 </div>
 
 <div class="notes-page" id="ecp-log-page">
   <div class="notes-page-header">
-    <span class="notes-back" onclick="closeEcpLog()">← Back</span>
     <div class="notes-page-title">ECP Log</div>
     <span class="font-size-toggle" onclick="toggleFontSizeBar(this)">Aa</span>
   </div>
@@ -319,11 +320,11 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
     <span class="font-size-label" style="font-size:20px;">A</span>
   </div>
   <div class="notes-page-body" id="ecp-log-body"></div>
+  <span class="notes-back-floating" onclick="closeEcpLog()">← Back</span>
 </div>
 
 <div class="notes-page" id="draft-page">
   <div class="notes-page-header">
-    <span class="notes-back" onclick="closeDraft()">← Back</span>
     <div class="notes-page-title" id="draft-page-title">Draft</div>
   </div>
   <div class="notes-page-body" id="draft-page-body">
@@ -333,6 +334,7 @@ if(localStorage.getItem(LOCK_STORAGE_KEY) === '1'){
       <button class="filter-btn" style="background:var(--green);color:#fff;border:none;" onclick="exportDraftToWord()">⬇️ Export to Word</button>
       <span id="draft-word-count" style="font-size:13px;color:var(--muted);align-self:center;"></span>
     </div>
+  <span class="notes-back-floating" onclick="closeDraft()">← Back</span>
   </div>
 </div>
 
